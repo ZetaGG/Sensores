@@ -1,0 +1,411 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SignalVisualizer from '../components/sims/SignalVisualizer.tsx';
+import CrossClassify from '../components/sims/CrossClassify.tsx';
+import ClassifyGame from '../components/sims/ClassifyGame.tsx';
+import OpticalParts from '../components/sims/OpticalParts.tsx';
+import OpticalModes from '../components/sims/OpticalModes.tsx';
+import TemperatureLab from '../components/sims/TemperatureLab.tsx';
+import PressureLab from '../components/sims/PressureLab.tsx';
+import ProximityLab from '../components/sims/ProximityLab.tsx';
+import Quiz from '../components/sims/Quiz.tsx';
+
+const floor = [
+  { icon: '◃', lbl: 'Entrada física', sub: 'luz · temp · presión · distancia' },
+  { icon: '⛁', lbl: 'Elemento sensor', sub: 'responde al cambio físico' },
+  { icon: '∿', lbl: 'Acondicionamiento', sub: 'amplifica y adapta la señal' },
+  { icon: '▣', lbl: 'Controlador', sub: 'Arduino, PIC o PLC' },
+];
+
+const caracteristicas = [
+  { sym: '≈', t: 'Exactitud', d: 'El valor medido se acerca al valor verdadero; los errores sistemáticos tienden a cero.' },
+  { sym: '◌', t: 'Precisión', d: 'Los errores aleatorios entre mediciones repetidas son pequeños: mide siempre parecido.' },
+  { sym: '⇄', t: 'Rango', d: 'Debe poder medir con exactitud y precisión un amplio abanico de valores de la magnitud.' },
+  { sym: '⚡', t: 'Velocidad de respuesta', d: 'Reacciona en el menor tiempo posible al cambio de la variable. Ideal: respuesta instantánea.' },
+  { sym: '∅', t: 'Offset', d: 'Valor de salida cuando la variable de entrada es nula (cero). Hay que calibrarlo.' },
+  { sym: '△', t: 'Sensibilidad', d: 'Cuánto cambia la salida por cada cambio de la entrada. A mayor sensibilidad, menor cambio detectable.' },
+];
+
+const tiposProx = [
+  { t: 'Fin de carrera', d: 'Interruptor mecánico de posición: conmuta al ser accionado físicamente. Simple y confiable en máquinas fijas (ascensores, robots).', icon: '⇋' },
+  { t: 'Capacitivo', d: 'Señala cambios en un campo eléctrico: la capacitancia depende de la constante dieléctrica, masa, tamaño y distancia del objeto. Detecta metálicos y no metálicos, líquidos, polvos y granos. Usa un oscilador RC regulable.', icon: '⦿' },
+  { t: 'Inductivo', d: 'Genera un campo magnético oscilante y detecta las pérdidas de corriente al acercarse objetos férricos y no férricos. Metales únicamente.', icon: '⍟' },
+  { t: 'Fotoeléctrico', d: 'Emisor de infrarrojos + fototransistor o fotodiodo. La señal puede codificarse para distinguir varios sensores a la vez (muy usado en robótica).', icon: '◪' },
+  { t: 'Ultrasónico', d: 'Emite impulsos y mide el tiempo de vuelo del eco: hasta 8 m, solo en aire, y requiere superficies que reflejen el sonido (sólidos, líquidos, polvos).', icon: ')))' },
+  { t: 'Magnético', d: 'Conmuta con imanes permanentes. Grandes distancias con sensores pequeños; el campo atraviesa materiales no magnéticos y se transmite con hierro.', icon: '℧' },
+];
+
+const comparativa = [
+  { s: 'Óptico — barrera', p: 'Interrupción del haz', m: 'Cualquier objeto opaco', rango: 'hasta 20–270 m', v: 'Mayor alcance', d: 'Alineación crítica, cableado doble' },
+  { s: 'Óptico — retro-reflectivo', p: 'Haz + espejo', m: 'Cualquier objeto opaco', rango: '1–3 m', v: 'Barato, un solo cuerpo', d: 'Falla con objetos muy brillantes' },
+  { s: 'Óptico — difuso', p: 'Reflexión en el objeto', m: 'Objetos poco brillantes', rango: '12–300 mm', v: 'Un solo lado, fácil de instalar', d: 'Distancia muy corta' },
+  { s: 'Temperatura — termopar', p: 'Efecto Seebeck (voltaje)', m: 'Temperatura', rango: 'muy amplio', v: 'Preciso y económico', d: 'Señal en µV, frágil ante ruido' },
+  { s: 'Temperatura — RTD Pt100', p: 'Resistencia del platino', m: 'Temperatura', rango: 'hasta 850 °C', v: 'Lineal y preciso', d: 'Más caro, necesita corriente' },
+  { s: 'Temperatura — termistor', p: 'Resistencia del semiconductor', m: 'Temperatura', rango: 'hasta ~300 °C', v: 'Muy sensible (~200 Ω/°C)', d: 'Rango corto, no lineal' },
+  { s: 'Presión — mecánico', p: 'Columna o deformación', m: 'Fluidos', rango: 'según diáfragma', v: 'Simple, sin alimentación', d: 'Sin señal eléctrica directa' },
+  { s: 'Presión — electromecánico', p: 'Galga / cristal (puente)', m: 'Fluidos y sólidos', rango: 'mV hasta MPa', v: 'Salida eléctrica, precisa', d: 'Necesita acondicionamiento' },
+  { s: 'Proximidad — inductivo', p: 'Campo magnético', m: 'Metales', rango: '~mm a cm', v: 'Robusto, sin contacto', d: 'Solo metales' },
+  { s: 'Proximidad — capacitivo', p: 'Campo eléctrico', m: 'Metálicos y no metálicos', rango: '~mm', v: 'Detecta casi todo', d: 'Alcance corto' },
+  { s: 'Proximidad — ultrasónico', p: 'Tiempo de eco', m: 'Sólidos y líquidos', rango: 'hasta 8 m', v: 'Mide distancia real', d: 'Solo en aire' },
+  { s: 'Proximidad — magnético', p: 'Campo de imán', m: 'Imanes', rango: 'cm a m', v: 'Gran distancia en tamaño pequeño', d: 'Solo responde a imanes' },
+];
+
+const glosario = [
+  { t: 'Sensor', d: 'Elemento que produce una señal relacionada con la cantidad que se está midiendo. Un sensor es un transductor orientado a medir.' },
+  { t: 'Transductor', d: 'Elemento que, al someterlo a un cambio físico, experimenta un cambio relacionado (ej. el tubo de Bourdon se deforma con la presión).' },
+  { t: 'Señal analógica', d: 'Variable continua con infinitos valores intermedios (temperatura, luz, presión, humedad).' },
+  { t: 'Señal digital', d: 'Estados discretos: encendido/apagado. Se usa para cronometrar o señalar acontecimientos.' },
+  { t: 'NTC', d: 'Termistor de coeficiente negativo: su resistencia disminuye al aumentar la temperatura.' },
+  { t: 'PTC', d: 'Termistor de coeficiente positivo: su resistencia aumenta con la temperatura.' },
+  { t: 'Efecto Seebeck', d: 'Dos metales distintos unidos generan un voltaje proporcional a la temperatura de la unión. Base del termopar.' },
+  { t: 'RTD', d: 'Detector de temperatura por resistencia (platino, Pt100). Su resistencia cambia de forma casi lineal con la temperatura.' },
+  { t: 'Galga extensiométrica', d: 'Resistencia cuya deformación mecánica (por presión o fuerza) cambia su valor eléctrico. Se usa en puentes de Wheatstone.' },
+  { t: 'Constante dieléctrica', d: 'Capacidad de un material de concentrar campo eléctrico. Los sensores capacitivos la usan para detectar masa, tamaño y distancia.' },
+  { t: 'Tiempo de vuelo', d: 'Tiempo que tarda el eco (sonido o luz) en regresar al sensor. Con él se calcula la distancia.' },
+  { t: 'Offset', d: 'Valor de salida del sensor cuando la entrada es nula. Toda instrumentación se calibra compensándolo.' },
+];
+---
+
+<BaseLayout theme="tema-1">
+
+  <!-- ═══════════ HERO ═══════════ -->
+  <section class="hero">
+    <div class="container hero-grid">
+      <div>
+        <p class="eyebrow rv" style="margin-bottom:18px">SISTEMAS PROGRAMABLES · TEMA I · ANTOLOGÍA UNIDAD 1</p>
+        <h1 class="hero-title rv" style="--d:.05s">
+          <span class="t1">SENSORES</span><br />
+          <span class="t2">EN VIVO</span>
+        </h1>
+        <p class="hero-lede rv" style="--d:.12s">
+          No es un apunte con dibujos: es un <strong>banco de pruebas</strong>. Cada sección es un canal de
+          instrumento que puedes operar — dispara señales, arrastra piezas y mira cómo el mundo físico
+          se convierte en voltaje.
+        </p>
+        <div class="hero-actions rv" style="--d:.18s">
+          <a class="btn is-active" style="--c:var(--ch-intro);display:inline-block" href="#ch01">▼ ENTRAR AL BANCO</a>
+          <a class="btn" style="display:inline-block" href="#ch02">PROBAR ÓPTICOS</a>
+        </div>
+        <div class="sim-legend rv" style="--d:.24s;margin-top:26px">
+          <span><i style="background:var(--ch-intro)"></i>CH01 Sensor</span>
+          <span><i style="background:var(--ch-optico)"></i>CH02 Ópticos</span>
+          <span><i style="background:var(--ch-temp)"></i>CH03 Temp.</span>
+          <span><i style="background:var(--ch-pres)"></i>CH04 Presión</span>
+          <span><i style="background:var(--ch-prox)"></i>CH05 Prox.</span>
+        </div>
+      </div>
+      <div class="rv" style="--d:.1s">
+        <SignalVisualizer client:visible />
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ CH01 · EL SENSOR ═══════════ -->
+  <section class="section" id="ch01" style="--c: var(--ch-intro)">
+    <div class="container">
+      <div class="channel-head rv">
+        <span class="channel-tag">CH01 · DEFINICIÓN</span>
+        <h2 class="channel-title">El sensor</h2>
+      </div>
+      <p class="channel-sub rv">
+        Según <strong>W. Bolton</strong>, un sensor es <em>un elemento que produce una señal relacionada con la
+        cantidad que se está midiendo</em>. Un transductor es el elemento que experimenta un cambio relacionado
+        con la magnitud física — <strong>los sensores son transductores</strong> orientados a medir. Todo sensor
+        sigue después una etapa de acondicionamiento y amplificación para ajustar su señal al controlador.
+      </p>
+
+      <div class="grid-4 rv" style="margin-bottom:clamp(24px,4vw,40px)">
+        {floor.map((f, i) => (
+          <div class="panel">
+            <div class="panel-tag"><span>{String(i + 1).padStart(2, '0')}/04</span></div>
+            <div class="panel-inner" style="display:flex;flex-direction:column;gap:4px;padding:16px">
+              <span style="font-size:24px;color:var(--ch-intro);font-family:var(--font-display)">{f.icon}</span>
+              <strong style="font-family:var(--font-display);letter-spacing:.03em">{f.lbl}</strong>
+              <span class="mono" style="font-size:11px;color:var(--ink-faint)">{f.sub}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div class="grid-2 rv" style="margin-bottom:clamp(24px,4vw,40px)">
+        <CrossClassify client:visible />
+        <div class="panel" style="--c: var(--ch-intro)">
+          <div class="panel-tag"><span>CLASIFICACIÓN DE LOS SENSORES</span><span>SALIDA · CONTACTO · ENERGÍA</span></div>
+          <div class="panel-inner" style="display:flex;flex-direction:column;gap:14px">
+            <p class="text-dim" style="font-size:14.5px">
+              Los sensores <strong style="color:var(--ink)">analógicos</strong> miden variables como temperatura, luz, presión
+              o humedad con una señal continua; los <strong style="color:var(--ink)">digitales</strong> señalan si un interruptor
+              está encendido o apagado y se usan para cronometrar o indicar acontecimientos. Según su
+              alimentación, un sensor <strong style="color:var(--ink)">activo</strong> (termopar, piezoeléctrico) genera su
+              propia señal; un sensor <strong style="color:var(--ink)">pasivo</strong> (RTD, LDR) necesita que le inyectes
+              corriente para leer su respuesta.
+            </p>
+            <div class="sim-legend" style="color:var(--ink-dim)">
+              <span><i style="background:var(--ch-intro)"></i>Analógico = continuo</span>
+              <span><i style="background:var(--ch-optico)"></i>Digital = estados</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rv"><ClassifyGame client:visible /></div>
+
+      <h3 class="mono rv" style="font-size:12px;letter-spacing:.22em;color:var(--ch-intro);margin:clamp(32px,5vw,48px) 0 18px">CARACTERÍSTICAS · GIRA LAS TARJETAS</h3>
+      <div class="grid-3 rv">
+        {caracteristicas.map((c) => (
+          <button type="button" class="flip" aria-label={`Característica: ${c.t}. ${c.d}`} onclick="this.classList.toggle('flipped')">
+            <div class="flip-in">
+              <div class="flip-face" style="--c:var(--ch-intro)">
+                <span class="sym">{c.sym}</span>
+                <strong style="font-family:var(--font-display);letter-spacing:.05em;font-size:17px">{c.t}</strong>
+                <span class="mono" style="font-size:10px;color:var(--ink-faint);letter-spacing:.16em">TOCA PARA VER</span>
+              </div>
+              <div class="flip-face flip-back" style="--c:var(--ch-intro)">
+                <p style="font-size:13.5px;color:var(--ink-dim)">{c.d}</p>
+              </div>
+            </div>
+          </button>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ CH02 · ÓPTICOS ═══════════ -->
+  <section class="section" id="ch02" style="--c: var(--ch-optico)">
+    <div class="container">
+      <div class="channel-head rv">
+        <span class="channel-tag">CH02 · SENSORES ÓPTICOS</span>
+        <h2 class="channel-title">La luz como detector</h2>
+      </div>
+      <p class="channel-sub rv">
+        Su funcionamiento <strong>basa en la emisión de un haz de luz que es interrumpido o reflejado</strong> por el
+        objeto a detectar. Son de los sensores más sensibles que existen — y por eso mismos los que menos duran.
+        Antes de operar los modos de detección, desarma mentalmente un sensor: <em>fuente, lentes, receptor y circuito de salida</em>.
+      </p>
+
+      <div class="rv" style="margin-bottom:clamp(24px,4vw,40px)"><OpticalParts client:visible /></div>
+      <div class="rv" style="margin-bottom:clamp(24px,4vw,40px)"><OpticalModes client:visible /></div>
+
+      <div class="rv">
+        <div class="panel" style="--c: var(--ch-optico)">
+          <div class="panel-tag"><span>MODOS DE DETECCIÓN · TABLA COMPARATIVA</span><span>1.1.4 ANTOLOGÍA</span></div>
+          <div class="panel-inner" style="overflow-x:auto">
+            <table class="tbl">
+              <thead>
+                <tr><th>Configuración</th><th>Cómo detecta</th><th>Rango típico</th><th>Ventaja</th><th>Desventaja</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong style="color:var(--ch-optico)">Barra / transmisión directa</strong></td>
+                  <td>Emisor frente a receptor; la pieza se interpone</td>
+                  <td class="mono">hasta 20–270 m</td>
+                  <td>Mayor distancia de todas</td>
+                  <td>Alineación crítica; no apto para objetos translúcidos o transparentes</td>
+                </tr>
+                <tr>
+                  <td><strong style="color:var(--ch-optico)">Retro-reflectivo (réflex)</strong></td>
+                  <td>Emisor y receptor juntos; un espejo devuelve el haz</td>
+                  <td class="mono">1–3 m</td>
+                  <td>Popular y barato, un solo cableado</td>
+                  <td>Problemas si la pieza es muy brillante</td>
+                </tr>
+                <tr>
+                  <td><strong style="color:var(--ch-optico)">Reflectivo difuso</strong></td>
+                  <td>El propio objeto refleja el haz</td>
+                  <td class="mono">12–300 mm</td>
+                  <td>Barato, fácil, un solo lado</td>
+                  <td>Distancia muy corta</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ CH03 · TEMPERATURA ═══════════ -->
+  <section class="section" id="ch03" style="--c: var(--ch-temp)">
+    <div class="container">
+      <div class="channel-head rv">
+        <span class="channel-tag">CH03 · TEMPERATURA</span>
+        <h2 class="channel-title">De grados a voltios</h2>
+      </div>
+      <p class="channel-sub rv">
+        Los sensores de temperatura <strong>transforman los cambios de temperatura en cambios en señales eléctricas</strong>.
+        Típicamente se componen del <em>elemento sensor</em> (termopar, RTD o termistor), una <em>vaina</em> rellena de
+        material conductor para transmitir rápido el calor, y el <em>cable</em> hacia el equipo electrónico.
+        Prueba cada tecnología en el banco: verás que el termistor es el más sensible, el RTD el más lineal y el
+        termopar el de mayor rango.
+      </p>
+
+      <div class="rv" style="margin-bottom:clamp(24px,4vw,40px)"><TemperatureLab client:visible /></div>
+
+      <div class="grid-3 rv">
+        <div class="panel" style="--c:var(--ch-temp)">
+          <div class="panel-tag"><span>TERMOPARES · K</span><span>efecto Seebeck</span></div>
+          <div class="panel-inner" style="display:flex;flex-direction:column;gap:8px">
+            <span style="font-family:var(--font-display);font-size:30px;color:var(--ch-temp)">⧓</span>
+            <p style="font-size:13.5px;color:var(--ink-dim)">Los más usados: <strong style="color:var(--ink)">precisos, relativamente económicos y de amplio rango</strong>. Dos metales distintos unidos generan un pequeño voltaje termoeléctrico (Seebeck) como función de la temperatura.</p>
+          </div>
+        </div>
+        <div class="panel" style="--c:var(--ch-temp)">
+          <div class="panel-tag"><span>RTD · Pt100</span><span>platino</span></div>
+          <div class="panel-inner" style="display:flex;flex-direction:column;gap:8px">
+            <span style="font-family:var(--font-display);font-size:30px;color:var(--ch-temp)">⛨</span>
+            <p style="font-size:13.5px;color:var(--ink-dim)">Bobinas o películas de platino: <strong style="color:var(--ink)">al calentar sube su resistencia</strong>. <span class="mono" style="color:var(--ch-temp)">100 Ω @ 0 °C</span>, hasta ~850 °C, relación casi lineal. Necesita corriente para leer su voltaje.</p>
+          </div>
+        </div>
+        <div class="panel" style="--c:var(--ch-temp)">
+          <div class="panel-tag"><span>TERMISTOR</span><span>NTC / PTC</span></div>
+          <div class="panel-inner" style="display:flex;flex-direction:column;gap:8px">
+            <span style="font-family:var(--font-display);font-size:30px;color:var(--ch-temp)">◍</span>
+            <p style="font-size:13.5px;color:var(--ink-dim)">Semiconductor de óxidos metálicos prensado y cubierto con epoxi o vidrio: <strong style="color:var(--ink)">alta resistencia (2 a 10 kΩ) y sensibilidad ~200 Ω/°C</strong>, en un rango limitado (hasta ~300 °C).</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ CH04 · PRESIÓN ═══════════ -->
+  <section class="section" id="ch04" style="--c: var(--ch-pres)">
+    <div class="container">
+      <div class="channel-head rv">
+        <span class="channel-tag">CH04 · PRESIÓN</span>
+        <h2 class="channel-title">Fuerza repartida</h2>
+      </div>
+      <p class="channel-sub rv">
+        En técnicas de proceso, <strong>entre el 30 y 40 % de todas las mediciones miden presión</strong>. El sensor lleva un
+        elemento sensible que emite una señal eléctrica al variar la presión, o conmuta si se supera un valor límite.
+        Las unidades de mantenimiento neumáticas llevan manómetro y regulador: aquí operas el manómetro, el tubo de
+        Bourdon y los tres tipos de medida.
+      </p>
+
+      <div class="rv" style="margin-bottom:clamp(24px,4vw,40px)"><PressureLab client:visible /></div>
+
+      <div class="grid-3 rv">
+        <div class="panel" style="--c:var(--ch-pres)">
+          <div class="panel-tag"><span>MECÁNICOS · DIRECTOS</span><span>columna / pozo</span></div>
+          <div class="panel-inner" style="display:flex;flex-direction:column;gap:8px">
+            <span style="font-family:var(--font-display);font-size:30px;color:var(--ch-pres)">ⵄ</span>
+            <p style="font-size:13.5px;color:var(--ink-dim)">Manómetro de tubo en U, manómetro de pozo y barómetro: miden comparando <strong style="color:var(--ink)">una columna de líquido contra una presión de referencia</strong>.</p>
+          </div>
+        </div>
+        <div class="panel" style="--c:var(--ch-pres)">
+          <div class="panel-tag"><span>MECÁNICOS · ELÁSTICOS</span><span>deformación</span></div>
+          <div class="panel-inner" style="display:flex;flex-direction:column;gap:8px">
+            <span style="font-family:var(--font-display);font-size:30px;color:var(--ch-pres)">⌒</span>
+            <p style="font-size:13.5px;color:var(--ink-dim)"><strong style="color:var(--ink)">Tubo de Bourdon, diafragma y fuelle</strong>: se deforman con la presión y ese movimiento acciona la aguja de un manómetro. Lo que acabas de operar.</p>
+          </div>
+        </div>
+        <div class="panel" style="--c:var(--ch-pres)">
+          <div class="panel-tag"><span>ELECTROMECÁNICOS</span><span>señal eléctrica</span></div>
+          <div class="panel-inner" style="display:flex;flex-direction:column;gap:8px">
+            <span style="font-family:var(--font-display);font-size:30px;color:var(--ch-pres)">≋</span>
+            <p style="font-size:13.5px;color:var(--ink-dim)">La deformación actúa sobre potenciómetros, condensadores, bobinas o <strong style="color:var(--ink)">galgas extensiométricas</strong> (resistencia que varía con la forma) y producen tensión o corriente medible.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ CH05 · PROXIMIDAD ═══════════ -->
+  <section class="section" id="ch05" style="--c: var(--ch-prox)">
+    <div class="container">
+      <div class="channel-head rv">
+        <span class="channel-tag">CH05 · PROXIMIDAD</span>
+        <h2 class="channel-title">Detectar sin tocar</h2>
+      </div>
+      <p class="channel-sub rv">
+        Un sensor de proximidad es un <strong>transductor que detecta objetos o señales cerca del elemento sensor</strong>,
+        sin contacto físico. Existen tantos porque cada campo físico tiene su material: el reto del banco es
+        <em>encontrar la pareja correcta de sensor y material</em>.
+      </p>
+
+      <div class="rv" style="margin-bottom:clamp(24px,4vw,40px)"><ProximityLab client:visible /></div>
+
+      <div class="rv">
+        <h3 class="mono" style="font-size:12px;letter-spacing:.22em;color:var(--ch-prox);margin-bottom:18px">LOS SEIS FAMILIARES · 1.4.1 TIPOS</h3>
+        <div class="grid-3">
+          {tiposProx.map((t) => (
+            <div class="panel" style="--c:var(--ch-prox)">
+              <div class="panel-tag"><span>{t.icon}</span></div>
+              <div class="panel-inner" style="display:flex;flex-direction:column;gap:8px;padding:16px">
+                <strong style="font-family:var(--font-display);letter-spacing:.04em;font-size:16px">{t.t}</strong>
+                <p style="font-size:13px;color:var(--ink-dim)">{t.d}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ COMPARATIVA + TEST + GLOSARIO ═══════════ -->
+  <section class="section" id="quiz" style="--c: var(--ch-quiz)">
+    <div class="container">
+      <div class="channel-head rv">
+        <span class="channel-tag">FINAL · RESUMEN</span>
+        <h2 class="channel-title">Tabla maestra</h2>
+      </div>
+      <p class="channel-sub rv">Un solo vistazo a qué detecta cada familia, con qué principio y a qué distancia. Dedica un minuto a la fila que más te cueste en el test.</p>
+
+      <div class="rv" style="margin-bottom:clamp(32px,5vw,48px)">
+        <div class="panel" style="--c:var(--trace)">
+          <div class="panel-tag"><span>MATRIZ DE SELECCIÓN DE SENSOR</span><span>PRINCIPIO → MATERIAL → RANGO</span></div>
+          <div class="panel-inner" style="overflow-x:auto">
+            <table class="tbl">
+              <thead>
+                <tr><th>Sensor</th><th>Principio físico</th><th>Detecta</th><th>Rango</th><th>Ventaja</th><th>Ojo con…</th></tr>
+              </thead>
+              <tbody>
+                {comparativa.map((c) => (
+                  <tr>
+                    <td><strong>{c.s}</strong></td>
+                    <td>{c.p}</td>
+                    <td>{c.m}</td>
+                    <td class="mono">{c.rango}</td>
+                    <td>{c.v}</td>
+                    <td>{c.d}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-2" style="align-items:start">
+        <div class="rv"><Quiz client:visible /></div>
+        <div class="rv">
+          <div class="panel" style="--c:var(--ch-quiz)">
+            <div class="panel-tag"><span>GLOSARIO DEL BANCO</span><span>12 TÉRMINOS</span></div>
+            <div class="panel-inner" style="display:flex;flex-direction:column;gap:10px;padding:18px">
+              {glosario.map((g) => (
+                <details class="acc">
+                  <summary>{g.t}</summary>
+                  <div class="acc-body"><p>{g.d}</p></div>
+                </details>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rv" style="margin-top:clamp(40px,6vw,64px);text-align:center">
+        <div class="panel" style="background:var(--bg-deep)">
+          <div class="panel-inner" style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:40px 24px">
+            <div style="font-family:var(--font-display);font-size:30px;color:var(--trace)">SENSOR = PUENTE ENTRE EL MUNDO FÍSICO Y EL PROGRAMA</div>
+            <p style="color:var(--ink-dim);max-width:56ch">
+              Cada canal de este banco hizo lo mismo: <strong style="color:var(--ink)">una magnitud que cambia</strong>
+              → un <strong style="color:var(--ink)">elemento que responde</strong> → una <strong style="color:var(--ink)">señal que tu controlador entiende</strong>.
+              Eso es Sistemas Programables: el programa empieza donde el sensor termina.
+            </p>
+            <a class="btn is-active" style="--c:var(--trace);display:inline-block;margin-top:6px" href="#top">↑ SUBIR AL INICIO</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</BaseLayout>

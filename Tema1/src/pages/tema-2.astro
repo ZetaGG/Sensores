@@ -1,0 +1,457 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ControlLoop from '../components/sims/ControlLoop.tsx';
+import ActuatorGallery from '../components/sims/ActuatorGallery.tsx';
+import ActuatorChallenge from '../components/sims/ActuatorChallenge.tsx';
+import MotorLab from '../components/sims/MotorLab.tsx';
+import PneumaticLab from '../components/sims/PneumaticLab.tsx';
+import SolenoidLab from '../components/sims/SolenoidLab.tsx';
+import HydraulicLab from '../components/sims/HydraulicLab.tsx';
+import SignalingLab from '../components/sims/SignalingLab.tsx';
+import ActuatorCompare from '../components/sims/ActuatorCompare.tsx';
+import Quiz from '../components/sims/Quiz.tsx';
+import { QUIZ_ACTUADORES, RESULTADOS_ACTUADORES, SELECTION_CRITERIA } from '../data/actuadores.ts';
+
+const lazo = [
+  { icon: '◉', lbl: 'Sensor', sub: 'mide la variable física' },
+  { icon: '▣', lbl: 'Controlador', sub: 'compara con la consigna' },
+  { icon: '⚙', lbl: 'Actuador', sub: 'convierte energía en acción' },
+  { icon: '⬢', lbl: 'Proceso', sub: 'la variable manipulada cambia' },
+];
+
+const funciones = [
+  { sym: '⚡', t: 'Transformar energía', d: 'Convierte energía eléctrica, neumática o hidráulica en movimiento, fuerza o una señal física.' },
+  { sym: '⇄', t: 'Ejecutar la orden', d: 'Recibe la señal del controlador y actúa sobre el proceso: abre, cierra, mueve, gira o avisa.' },
+  { sym: '⤢', t: 'Amplificar potencia', d: 'Una señal débil de mando (24 V, unos mA) gobierna fuerzas enormes mediante válvulas o relés.' },
+  { sym: '⛨', t: 'Posición de fallo', d: 'Define qué hace el sistema al perder energía: cerrar, abrir o quedarse quieto. Es una decisión de seguridad.' },
+];
+
+const clasificacion = [
+  { icon: '⚡', t: 'Eléctricos', d: 'Motores DC y AC, motores paso a paso, solenoides y electroválvulas. Limpios, precisos y fáciles de controlar con electrónica.' },
+  { icon: '☁', t: 'Neumáticos', d: 'Cilindros y motores de aire comprimido. Rápidos, baratos y seguros en atmósferas inflamables; fuerza moderada y poca precisión de posición.' },
+  { icon: '⬤', t: 'Hidráulicos', d: 'Cilindros y motores movidos por aceite a alta presión. Máxima fuerza por tamaño y control suave, a cambio de instalación cara y mantenimiento.' },
+  { icon: '⟳', t: 'Mecánicos', d: 'Levas, husillos, piñón-cremallera y bielas. No generan energía: transforman el movimiento y multiplican fuerza con precisión.' },
+];
+
+const electricos = [
+  { icon: '⚙', t: 'Motor DC', d: 'Velocidad proporcional a la tensión y sentido conmutable invirtiendo la polaridad. Par de arranque alto; desgasta escobillas.' },
+  { icon: '↻', t: 'Motor AC', d: 'Campo magnético giratorio que arrastra la jaula del rotor. Robusto y sin escobillas; la velocidad se regula con variador (VFD).' },
+  { icon: '⌗', t: 'Motor paso a paso', d: 'Cada pulso avanza un ángulo fijo (1.8° = 200 pasos/vuelta). Posicionamiento exacto en lazo abierto para CNC e impresoras.' },
+];
+
+const neumaticos = [
+  { icon: '→', t: 'Simple efecto', d: 'Un solo puerto: el aire empuja en un sentido y un resorte devuelve el vástago. Se gobierna con válvula 3/2. Más barato y sencillo.' },
+  { icon: '⇔', t: 'Doble efecto', d: 'Dos puertos: trabaja en ambos sentidos con válvula 5/2. La fuerza de retroceso resta el área del vástago. Es el estándar industrial.' },
+  { icon: '⌇', t: 'Válvula solenoide', d: 'Convierte una señal eléctrica en conmutación neumática. El número de vías y posiciones (3/2, 5/2) define qué cilindro puede gobernar.' },
+];
+
+const hidraulicos = [
+  { icon: '⇚', t: 'Cilindro hidráulico', d: 'El aceite a presión empuja un pistón de gran sección. Fuerza enorme, movimiento suave y control preciso incluso a baja velocidad.' },
+  { icon: '⛽', t: 'Motobomba', d: 'El motor eléctrico acciona la bomba que aspira aceite del depósito y lo entrega a presión. Es la fuente de energía del circuito.' },
+  { icon: '∿', t: 'F = P × A', d: 'La fuerza crece con la presión y con el área del pistón; el caudal fija la velocidad (v = Q/A). Duplicar el diámetro cuadruplica la fuerza.' },
+];
+
+const mecanicos = [
+  { icon: '↔', t: 'Movimiento lineal', d: 'El mecanismo transforma giro o fuerza en un desplazamiento recto para empujar, elevar, sujetar o posicionar. Ejemplos: husillo, cremallera y biela.' },
+  { icon: '⟳', t: 'Movimiento rotativo', d: 'La salida gira alrededor de un eje y transmite torque mediante engranajes, poleas, ejes o levas. Se usa para mezclar, transportar o accionar una bomba.' },
+  { icon: '⌗', t: 'Elevación, traslación y posicionamiento', d: 'Un mecanismo mecánico adapta recorrido, velocidad y fuerza a la tarea: eleva una carga, traslada una pieza o la detiene en una posición repetible.' },
+];
+
+const modosHidraulicos = [
+  { icon: '→', t: 'Simple efecto', d: 'La presión actúa en una cámara y el retorno ocurre por resorte, gravedad o la carga. Produce movimiento lineal en un sentido y requiere un puerto de trabajo.' },
+  { icon: '⇔', t: 'Doble acción', d: 'La válvula alterna presión entre las dos cámaras del cilindro para controlar avance y retroceso. La fuerza útil cambia por el área del vástago.' },
+  { icon: '↻', t: 'Motor hidráulico rotativo', d: 'El caudal de aceite produce giro continuo y la presión determina el torque. Se utiliza en ruedas, mezcladoras, cabrestantes y transmisiones de maquinaria pesada.' },
+];
+
+const senalizacion = [
+  { icon: '◉', t: 'Piloto', d: 'Lámpara indicadora de estado. El color tiene significado normativo: verde marcha, rojo paro o fallo, ámbar advertencia, azul información.' },
+  { icon: '◈', t: 'Zumbador', d: 'Alarma sonora piezoeléctrica o electromagnética. El tono (frecuencia) y el patrón (continuo o intermitente) distinguen cada aviso.' },
+];
+
+const aplicaciones = [
+  { t: 'Bandas transportadoras', d: 'Un motor AC con reductor mantiene el movimiento continuo; un paso a paso detiene la pieza en posiciones controladas.', icon: '⇉' },
+  { t: 'Robots industriales', d: 'Servos, motores paso a paso y actuadores lineales posicionan brazos y ejes con repetibilidad.', icon: '⌬' },
+  { t: 'Sistemas de bombeo', d: 'Motobombas eléctricas o hidráulicas entregan caudal para riego, refrigeración y procesos.', icon: '⛽' },
+  { t: 'Control de líquidos', d: 'Las válvulas solenoides abren, cierran o dosifican el flujo bajo una orden del controlador.', icon: '⌇' },
+  { t: 'Electroválvulas', d: 'Una bobina convierte una señal eléctrica en el movimiento del carrete neumático o hidráulico.', icon: '⌇' },
+  { t: 'Sistemas de alarmas', d: 'Pilotos y zumbadores comunican paro, fallo, advertencia y estados de seguridad.', icon: '◈' },
+  { t: 'Ventiladores y extractores', d: 'Motores DC o AC mueven aire para enfriar gabinetes, ventilar áreas y extraer gases.', icon: '✣' },
+  { t: 'Mezcladoras', d: 'Motores eléctricos o hidráulicos entregan torque continuo para homogeneizar líquidos y sólidos.', icon: '⟳' },
+  { t: 'Sistemas de posicionamiento', d: 'Paso a paso, servomotor y husillo convierten pulsos en recorridos medibles.', icon: '⌗' },
+  { t: 'Procesos automatizados', d: 'El lazo sensor-controlador-actuador coordina transporte, sujeción, corte, llenado y empaquetado.', icon: '▣' },
+  { t: 'Prensas industriales', d: 'Cilindros hidráulicos aplican cientos de toneladas sobre la pieza.', icon: '⬒' },
+  { t: 'Inyección de plástico', d: 'Hidráulica de alta presión cierra el molde e inyecta material a gran velocidad.', icon: '⬓' },
+  { t: 'Envasado', d: 'Cilindros neumáticos rápidos empujan, cortan y sellan envases.', icon: '▣' },
+  { t: 'Puertas automáticas', d: 'Motor DC o cilindro neumático trabaja con sensores de seguridad y finales de carrera.', icon: '⇥' },
+  { t: 'HVAC y proceso', d: 'Actuadores eléctricos y válvulas solenoide regulan caudal, presión y temperatura.', icon: '≋' },
+  { t: 'Dosificación', d: 'Motobombas y válvulas entregan volúmenes exactos de líquido por ciclo.', icon: '⛽' },
+];
+
+const glosario = [
+  { t: 'Actuador', d: 'Dispositivo que convierte energía en movimiento o acción física siguiendo la orden de un controlador.' },
+  { t: 'Servomotor', d: 'Motor con realimentación (encoder) que corrige su posición o velocidad de forma continua.' },
+  { t: 'Solenoide', d: 'Bobina que genera un campo magnético y desplaza un núcleo al energizarse; base de válvulas y relés.' },
+  { t: 'Electroválvula', d: 'Válvula accionada por un solenoide que dirige el aire o el aceite según su número de vías y posiciones.' },
+  { t: 'Válvula 3/2', d: 'Tres vías y dos posiciones: alimenta, cierra y desfoga un solo lado del pistón. Típica de simple efecto.' },
+  { t: 'Válvula 5/2', d: 'Cinco vías y dos posiciones: gobierna ambos lados de un cilindro de doble efecto (avance y retroceso).' },
+  { t: 'Simple efecto', d: 'Cilindro que empuja en un sentido y retorna por resorte. Un solo puerto de aire.' },
+  { t: 'Doble efecto', d: 'Cilindro que trabaja en ambos sentidos con dos puertos; la fuerza de retroceso descuenta el vástago.' },
+  { t: 'Caudal', d: 'Volumen de fluido que entrega la bomba por unidad de tiempo (L/min). Fija la velocidad del cilindro.' },
+  { t: 'Presión', d: 'Fuerza por unidad de superficie. En hidráulica se maneja en bar (1 bar ≈ 1 kgf/cm²).' },
+  { t: 'PWM', d: 'Modulación por ancho de pulso: regula la tensión media y con ella la velocidad del motor DC.' },
+  { t: 'Variador (VFD)', d: 'Equipo que cambia la frecuencia y tensión de alimentación para regular la velocidad de un motor AC.' },
+  { t: 'Relación de transmisión', d: 'Cociente entre la velocidad de entrada y la de salida en un mecanismo de engranajes o poleas.' },
+  { t: 'Lazo abierto / cerrado', d: 'En abierto no se comprueba el resultado; en cerrado un sensor realimenta y corrige la acción.' },
+];
+---
+
+<BaseLayout theme="tema-2">
+
+  <!-- ═══════════ HERO ═══════════ -->
+  <section class="hero">
+    <div class="container hero-grid">
+      <div>
+        <p class="eyebrow rv" style="margin-bottom:18px">SISTEMAS PROGRAMABLES · TEMA II · ANTOLOGÍA UNIDAD 2</p>
+        <h1 class="hero-title rv" style="--d:.05s">
+          <span class="t1">ACTUADORES</span><br />
+          <span class="t2">EN ACCIÓN</span>
+        </h1>
+        <p class="hero-lede rv" style="--d:.12s">
+          El sensor mira; el actuador <strong>hace</strong>. Este banco es el músculo del sistema programable:
+          opera motores, cilindros, válvulas y alarmas, y mira cómo una señal débil se convierte en fuerza real.
+        </p>
+        <div class="hero-actions rv" style="--d:.18s">
+          <a class="btn is-active" style="--c:var(--act-intro);display:inline-block" href="#act01">▼ ENTRAR AL BANCO</a>
+          <a class="btn" style="display:inline-block" href="#act06">IR A SELECCIÓN</a>
+        </div>
+        <div class="sim-legend rv" style="--d:.24s;margin-top:26px">
+          <span><i style="background:var(--act-intro)"></i>ACT-01 Actuador</span>
+          <span><i style="background:var(--act-elec)"></i>ACT-02 Eléctricos</span>
+          <span><i style="background:var(--act-neum)"></i>ACT-03 Neumáticos</span>
+          <span><i style="background:var(--act-hidr)"></i>ACT-04 Hidráulicos</span>
+          <span><i style="background:var(--act-senal)"></i>ACT-05 Señalización</span>
+        </div>
+      </div>
+      <div class="rv" style="--d:.1s">
+        <div class="panel" style="--c:var(--act-intro)">
+          <div class="panel-tag"><span>LAZO DE CONTROL</span><span>SENSOR → ACTUADOR</span></div>
+          <div class="panel-inner" style="display:flex;flex-direction:column;gap:0">
+            {lazo.map((f, i) => (
+              <div class="col" style="gap:0">
+                <div class="row" style="gap:12px;padding:9px 0">
+                  <span style="font-size:24px;color:var(--act-intro);font-family:var(--font-display);width:30px;text-align:center">{f.icon}</span>
+                  <div class="col" style="gap:0">
+                    <strong style="font-family:var(--font-display);letter-spacing:.04em">{f.lbl}</strong>
+                    <span class="mono" style="font-size:11px;color:var(--ink-faint)">{f.sub}</span>
+                  </div>
+                </div>
+                {i < lazo.length - 1 && <div class="wire-v" style="--c:var(--act-intro);margin-left:15px;height:20px;align-self:flex-start"></div>}
+              </div>
+            ))}
+            <a class="btn is-active" style="--c:var(--act-intro);display:inline-block;margin-top:16px;align-self:flex-start" href="#act01">PROBAR EL LAZO COMPLETO →</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ ACT-01 · EL ACTUADOR ═══════════ -->
+  <section class="section" id="act01" style="--c: var(--act-intro)">
+    <div class="container">
+      <div class="channel-head rv">
+        <span class="channel-tag">ACT-01 · DEFINICIÓN</span>
+        <h2 class="channel-title">El actuador</h2>
+      </div>
+      <p class="channel-sub rv">
+        Un actuador es el <strong>elemento que transforma la energía en una acción física</strong> sobre el proceso:
+        movimiento, fuerza, luz o sonido. Es el músculo del lazo de control — recibe la orden del controlador y
+        la ejecuta. Sin actuador, el programa solo observa; con él, <em>modifica el mundo</em>.
+      </p>
+
+      <div class="grid-4 rv" style="margin-bottom:clamp(24px,4vw,40px)">
+        {lazo.map((f, i) => (
+          <div class="panel">
+            <div class="panel-tag"><span>{String(i + 1).padStart(2, '0')}/04</span></div>
+            <div class="panel-inner" style="display:flex;flex-direction:column;gap:4px;padding:16px">
+              <span style="font-size:24px;color:var(--act-intro);font-family:var(--font-display)">{f.icon}</span>
+              <strong style="font-family:var(--font-display);letter-spacing:.03em">{f.lbl}</strong>
+              <span class="mono" style="font-size:11px;color:var(--ink-faint)">{f.sub}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div class="rv" style="margin-bottom:clamp(24px,4vw,40px)">
+        <ControlLoop client:visible />
+      </div>
+
+      <h3 class="mono rv" style="font-size:12px;letter-spacing:.22em;color:var(--act-intro);margin:clamp(32px,5vw,48px) 0 18px">QUÉ HACE UN ACTUADOR · GIRA LAS TARJETAS</h3>
+      <div class="grid-4 rv" style="margin-bottom:clamp(32px,5vw,48px)">
+        {funciones.map((c) => (
+          <button type="button" class="flip" aria-label={`Función del actuador: ${c.t}. ${c.d}`} onclick="this.classList.toggle('flipped')">
+            <div class="flip-in">
+              <div class="flip-face" style="--c:var(--act-intro)">
+                <span class="sym">{c.sym}</span>
+                <strong style="font-family:var(--font-display);letter-spacing:.05em;font-size:16px">{c.t}</strong>
+                <span class="mono" style="font-size:10px;color:var(--ink-faint);letter-spacing:.16em">TOCA PARA VER</span>
+              </div>
+              <div class="flip-face flip-back" style="--c:var(--act-intro)">
+                <p style="font-size:13px;color:var(--ink-dim)">{c.d}</p>
+              </div>
+            </div>
+          </button>
+        ))}
+      </div>
+
+      <h3 class="mono rv" style="font-size:12px;letter-spacing:.22em;color:var(--act-intro);margin-bottom:18px">CLASIFICACIÓN POR ENERGÍA</h3>
+      <div class="grid-4 rv" style="margin-bottom:clamp(32px,5vw,48px)">
+        {clasificacion.map((c) => (
+          <div class="panel" style="--c:var(--act-intro)">
+            <div class="panel-tag"><span>{c.icon}</span></div>
+            <div class="panel-inner" style="display:flex;flex-direction:column;gap:8px;padding:16px">
+              <strong style="font-family:var(--font-display);letter-spacing:.04em;font-size:16px">{c.t}</strong>
+              <p style="font-size:13px;color:var(--ink-dim)">{c.d}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div class="rv"><ActuatorGallery client:visible /></div>
+
+      <h3 class="mono rv" style="font-size:12px;letter-spacing:.22em;color:var(--act-intro);margin:clamp(32px,5vw,48px) 0 18px">ACTUADORES MECÁNICOS · LINEAL Y ROTATIVO</h3>
+      <div class="grid-3 rv">
+        {mecanicos.map((m) => (
+          <div class="panel" style="--c:var(--act-intro)">
+            <div class="panel-tag"><span>{m.icon}</span><span>MOVIMIENTO</span></div>
+            <div class="panel-inner" style="display:flex;flex-direction:column;gap:8px;padding:16px">
+              <strong style="font-family:var(--font-display);letter-spacing:.04em;font-size:16px">{m.t}</strong>
+              <p style="font-size:13px;color:var(--ink-dim)">{m.d}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ ACT-02 · ELÉCTRICOS ═══════════ -->
+  <section class="section" id="act02" style="--c: var(--act-elec)">
+    <div class="container">
+      <div class="channel-head rv">
+        <span class="channel-tag">ACT-02 · ACTUADORES ELÉCTRICOS</span>
+        <h2 class="channel-title">Electricidad en movimiento</h2>
+      </div>
+      <p class="channel-sub rv">
+        Los actuadores eléctricos convierten la energía de la red o de una batería en giro, empuje o conmutación.
+        Son <strong>limpios, precisos y fáciles de gobernar con electrónica de potencia</strong>; su límite es la
+        relación entre fuerza y tamaño. Opera los tres motores del banco y compara.
+      </p>
+
+      <div class="rv" style="margin-bottom:clamp(24px,4vw,40px)"><MotorLab client:visible /></div>
+
+      <div class="grid-3 rv">
+        {electricos.map((e) => (
+          <div class="panel" style="--c:var(--act-elec)">
+            <div class="panel-tag"><span>{e.icon}</span></div>
+            <div class="panel-inner" style="display:flex;flex-direction:column;gap:8px;padding:16px">
+              <strong style="font-family:var(--font-display);letter-spacing:.04em;font-size:16px">{e.t}</strong>
+              <p style="font-size:13px;color:var(--ink-dim)">{e.d}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ ACT-03 · NEUMÁTICOS ═══════════ -->
+  <section class="section" id="act03" style="--c: var(--act-neum)">
+    <div class="container">
+      <div class="channel-head rv">
+        <span class="channel-tag">ACT-03 · ACTUADORES NEUMÁTICOS</span>
+        <h2 class="channel-title">Aire que empuja</h2>
+      </div>
+      <p class="channel-sub rv">
+        La neumática trabaja con aire comprimido, normalmente entre <strong>4 y 8 bar</strong>. Es rápida, limpia,
+        barata y segura incluso en atmósferas inflamables; su talón de Aquiles es que el aire es compresible, así
+        que <em>posicionar a media carrera es impreciso</em> y la fuerza queda moderada.
+      </p>
+
+       <div class="rv" style="margin-bottom:clamp(24px,4vw,40px)"><PneumaticLab client:visible /></div>
+
+      <div class="rv" style="margin-bottom:clamp(24px,4vw,40px)"><SolenoidLab client:visible /></div>
+
+      <div class="grid-3 rv">
+        {neumaticos.map((e) => (
+          <div class="panel" style="--c:var(--act-neum)">
+            <div class="panel-tag"><span>{e.icon}</span></div>
+            <div class="panel-inner" style="display:flex;flex-direction:column;gap:8px;padding:16px">
+              <strong style="font-family:var(--font-display);letter-spacing:.04em;font-size:16px">{e.t}</strong>
+              <p style="font-size:13px;color:var(--ink-dim)">{e.d}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ ACT-04 · HIDRÁULICOS ═══════════ -->
+  <section class="section" id="act04" style="--c: var(--act-hidr)">
+    <div class="container">
+      <div class="channel-head rv">
+        <span class="channel-tag">ACT-04 · ACTUADORES HIDRÁULICOS</span>
+        <h2 class="channel-title">La fuerza del aceite</h2>
+      </div>
+      <p class="channel-sub rv">
+        La hidráulica maneja aceite a <strong>20–250 bar en este banco didáctico</strong>. Como el líquido es prácticamente incompresible,
+        el principio de Pascal permite obtener <strong>fuerzas enormes en espacios pequeños</strong> con un control
+        suave y preciso. El precio: instalación costosa, fugas sucias y mantenimiento exigente.
+      </p>
+
+      <div class="rv" style="margin-bottom:clamp(24px,4vw,40px)"><HydraulicLab client:visible /></div>
+
+      <h3 class="mono rv" style="font-size:12px;letter-spacing:.22em;color:var(--act-hidr);margin-bottom:18px">MODOS DE ACTUACIÓN HIDRÁULICA</h3>
+      <div class="grid-3 rv" style="margin-bottom:clamp(32px,5vw,48px)">
+        {modosHidraulicos.map((mode) => (
+          <div class="panel" style="--c:var(--act-hidr)">
+            <div class="panel-tag"><span>{mode.icon}</span><span>CONFIGURACIÓN</span></div>
+            <div class="panel-inner" style="display:flex;flex-direction:column;gap:8px;padding:16px">
+              <strong style="font-family:var(--font-display);letter-spacing:.04em;font-size:16px">{mode.t}</strong>
+              <p style="font-size:13px;color:var(--ink-dim)">{mode.d}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div class="grid-3 rv">
+        {hidraulicos.map((e) => (
+          <div class="panel" style="--c:var(--act-hidr)">
+            <div class="panel-tag"><span>{e.icon}</span></div>
+            <div class="panel-inner" style="display:flex;flex-direction:column;gap:8px;padding:16px">
+              <strong style="font-family:var(--font-display);letter-spacing:.04em;font-size:16px">{e.t}</strong>
+              <p style="font-size:13px;color:var(--ink-dim)">{e.d}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ ACT-05 · SEÑALIZACIÓN ═══════════ -->
+  <section class="section" id="act05" style="--c: var(--act-senal)">
+    <div class="container">
+      <div class="channel-head rv">
+        <span class="channel-tag">ACT-05 · SEÑALIZACIÓN</span>
+        <h2 class="channel-title">Avisar también es actuar</h2>
+      </div>
+      <p class="channel-sub rv">
+        No todos los actuadores mueven cargas: los de señalización <strong>transforman una señal eléctrica en luz o
+        sonido</strong> para informar al operario. Son la interfaz entre la máquina y la persona, y muchas veces la
+        última barrera de seguridad.
+      </p>
+
+      <div class="rv" style="margin-bottom:clamp(24px,4vw,40px)"><SignalingLab client:visible /></div>
+
+      <div class="grid-2 rv">
+        {senalizacion.map((e) => (
+          <div class="panel" style="--c:var(--act-senal)">
+            <div class="panel-tag"><span>{e.icon}</span></div>
+            <div class="panel-inner" style="display:flex;flex-direction:column;gap:8px;padding:16px">
+              <strong style="font-family:var(--font-display);letter-spacing:.04em;font-size:16px">{e.t}</strong>
+              <p style="font-size:13.5px;color:var(--ink-dim)">{e.d}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ ACT-06 · SELECCIÓN Y APLICACIONES ═══════════ -->
+  <section class="section" id="act06" style="--c: var(--act-sel)">
+    <div class="container">
+      <div class="channel-head rv">
+        <span class="channel-tag">ACT-06 · SELECCIÓN Y APLICACIONES</span>
+        <h2 class="channel-title">Elegir el músculo correcto</h2>
+      </div>
+      <p class="channel-sub rv">
+        No existe el mejor actuador, sino el más adecuado para cada tarea. Antes de comprar hay que responder a
+        siete preguntas. Gira cada tarjeta para ver el criterio completo.
+      </p>
+
+      <h3 class="mono rv" style="font-size:12px;letter-spacing:.22em;color:var(--act-sel);margin-bottom:18px">CRITERIOS DE SELECCIÓN · 7 CRITERIOS</h3>
+      <div class="grid-4 rv" style="margin-bottom:clamp(32px,5vw,48px)">
+        {SELECTION_CRITERIA.map((c) => (
+          <button type="button" class="flip" aria-label={`Criterio de selección: ${c.title}. ${c.description}`} onclick="this.classList.toggle('flipped')">
+            <div class="flip-in">
+              <div class="flip-face" style="--c:var(--act-sel)">
+                <span class="sym">{c.icon}</span>
+                <strong style="font-family:var(--font-display);letter-spacing:.05em;font-size:16px">{c.title}</strong>
+                <span class="mono" style="font-size:10px;color:var(--ink-faint);letter-spacing:.16em">TOCA PARA VER</span>
+              </div>
+              <div class="flip-face flip-back" style="--c:var(--act-sel)">
+                <p style="font-size:12.5px;color:var(--ink-dim)">{c.description}</p>
+              </div>
+            </div>
+          </button>
+        ))}
+      </div>
+
+      <div class="rv" style="margin-bottom:clamp(32px,5vw,48px)">
+        <ActuatorChallenge client:visible />
+      </div>
+
+      <div class="rv" style="margin-bottom:clamp(32px,5vw,48px)"><ActuatorCompare client:visible /></div>
+
+      <h3 class="mono rv" style="font-size:12px;letter-spacing:.22em;color:var(--act-sel);margin-bottom:18px">APLICACIONES INDUSTRIALES REALES</h3>
+      <div class="grid-3 rv" style="margin-bottom:clamp(32px,5vw,48px)">
+        {aplicaciones.map((a) => (
+          <div class="panel" style="--c:var(--act-sel)">
+            <div class="panel-tag"><span>{a.icon}</span><span>APLICACIÓN</span></div>
+            <div class="panel-inner" style="display:flex;flex-direction:column;gap:8px;padding:16px">
+              <strong style="font-family:var(--font-display);letter-spacing:.04em;font-size:16px">{a.t}</strong>
+              <p style="font-size:13px;color:var(--ink-dim)">{a.d}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div class="grid-2" style="align-items:start">
+        <div class="rv">
+          <Quiz
+            client:visible
+            bank={QUIZ_ACTUADORES}
+            accent="var(--act-sel)"
+            tag="TEST DE REPASO · TEMA II · 8 PREGUNTAS"
+            results={RESULTADOS_ACTUADORES}
+          />
+        </div>
+        <div class="rv">
+          <div class="panel" style="--c:var(--act-sel)">
+            <div class="panel-tag"><span>GLOSARIO DE ACTUADORES</span><span>{glosario.length} TÉRMINOS</span></div>
+            <div class="panel-inner" style="display:flex;flex-direction:column;gap:10px;padding:18px">
+              {glosario.map((g) => (
+                <details class="acc">
+                  <summary>{g.t}</summary>
+                  <div class="acc-body"><p>{g.d}</p></div>
+                </details>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rv" style="margin-top:clamp(40px,6vw,64px);text-align:center">
+        <div class="panel" style="background:var(--bg-deep)">
+          <div class="panel-inner" style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:40px 24px">
+            <div style="font-family:var(--font-display);font-size:clamp(20px,3vw,30px);color:var(--act-sel)">SENSOR MIDE · CONTROLADOR DECIDE · ACTUADOR ACTÚA</div>
+            <p style="color:var(--ink-dim);max-width:56ch">
+              Ese es el lazo completo de un sistema programable. El sensor convierte el mundo físico en señal,
+              el controlador la interpreta y el actuador <strong style="color:var(--ink)">devuelve la acción al mundo</strong>.
+              Dominar los actuadores es dominar la mitad que <em>hace</em>.
+            </p>
+            <a class="btn is-active" style="--c:var(--act-sel);display:inline-block;margin-top:6px" href="#top">↑ SUBIR AL INICIO</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</BaseLayout>

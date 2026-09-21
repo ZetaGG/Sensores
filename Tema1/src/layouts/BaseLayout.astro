@@ -1,0 +1,137 @@
+---
+import '@fontsource/chakra-petch/600.css';
+import '@fontsource/chakra-petch/700.css';
+import '@fontsource/inter/400.css';
+import '@fontsource/inter/500.css';
+import '@fontsource/inter/600.css';
+import '@fontsource/ibm-plex-mono/400.css';
+import '@fontsource/ibm-plex-mono/500.css';
+import '../styles/global.css';
+import { FUTURE_TEMAS, TEMAS, getTheme, type ThemeId } from '../data/temas';
+
+interface Props {
+  /** Tema activo. Determina canales, metadatos y navegación. */
+  theme?: ThemeId;
+}
+
+const { theme = 'tema-1' } = Astro.props;
+const active = getTheme(theme);
+const progressGradient = `linear-gradient(90deg, ${active.channels.map((c) => c.color).join(', ')})`;
+---
+
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content={active.description} />
+  <meta name="theme-color" content="#070d17" />
+  <title>{active.title}</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23070d17'/><circle cx='16' cy='16' r='5' fill='%237dd3fc'/></svg>" />
+  <script is:inline>document.documentElement.classList.add('js');</script>
+</head>
+<body>
+
+  <header class="site-head">
+    <div class="container head-inner">
+      <a class="brand" href="#top" aria-label={`${active.code} ${active.name}: volver al inicio`}>
+        <span class="id">{active.code}</span>
+        <span>{active.name}</span>
+      </a>
+
+      <nav class="theme-switch" aria-label="Selector de tema">
+        {TEMAS.map((t) => (
+          <a
+            class:list={['theme-tab', t.id === active.id && 'is-active']}
+            href={t.path}
+            style={`--c:${t.accent}`}
+            aria-current={t.id === active.id ? 'page' : undefined}
+            aria-label={`Tema ${t.roman}: ${t.name}`}
+          >
+            <span class="tnum">TEMA {t.roman}</span>
+            <span class="tn">{t.short}</span>
+          </a>
+        ))}
+        {FUTURE_TEMAS.map((t) => (
+          <span class="theme-tab is-soon" aria-disabled="true" aria-label={`Tema ${t.roman}: Próximamente`} title="Próximamente">
+            <span class="tnum">TEMA {t.roman}</span>
+            <span class="tn">{t.short}</span>
+          </span>
+        ))}
+      </nav>
+
+      <nav class="channel-lamps" aria-label="Secciones del tema">
+        {active.channels.map((ch) => (
+          <a class="ch-lamp" data-ch={ch.id} href={`#${ch.id}`} style={`--c:${ch.color}`} aria-label={`${ch.label} ${ch.name}`}>
+            <span class="dot"></span>
+            <span>{ch.name}</span>
+          </a>
+        ))}
+      </nav>
+    </div>
+    <div class="head-progress" id="head-progress" aria-hidden="true" style={`background:${progressGradient}`}></div>
+  </header>
+
+  <main id="top">
+    <slot />
+  </main>
+
+  <footer class="site-foot">
+    <div class="container">
+      <div class="row">
+        <span>{active.footer}</span>
+        <span>MAT. REV. 2026 · SIMULACIONES EDUCATIVAS</span>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <span>Elaborado con Astro + React — sin hardware conectado, todo es simulación.</span>
+      </div>
+    </div>
+  </footer>
+
+  <script is:inline>
+    // Lámparas de canal: encender la sección visible + barra de progreso
+    (function () {
+      var lamps = document.querySelectorAll('.ch-lamp');
+      var progress = document.getElementById('head-progress');
+      var sections = lamps.length
+        ? Array.from(lamps).map(function (l) {
+            var el = document.getElementById(l.getAttribute('data-ch'));
+            return el;
+          }).filter(Boolean)
+        : [];
+
+      function onScroll() {
+        var y = window.scrollY;
+        var doc = document.documentElement;
+        var max = doc.scrollHeight - window.innerHeight;
+        if (max > 0 && progress) progress.style.width = (y / max) * 100 + '%';
+
+        var current = 0;
+        sections.forEach(function (s, i) {
+          if (s && s.offsetTop - 120 <= y) current = i;
+        });
+        lamps.forEach(function (l, i) { l.classList.toggle('is-on', i === current); });
+      }
+
+      // Reveal on scroll
+      var io = 'IntersectionObserver' in window
+        ? new IntersectionObserver(function (entries) {
+            entries.forEach(function (e) {
+              if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+            });
+          }, { threshold: 0.12 })
+        : null;
+
+      document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.rv').forEach(function (el, i) {
+          if (!el.style.getPropertyValue('--d')) el.style.setProperty('--d', Math.min(i * 0.06, 0.5) + 's');
+          if (io) io.observe(el);
+          else el.classList.add('in');
+        });
+        onScroll();
+      });
+      window.addEventListener('scroll', onScroll, { passive: true });
+    })();
+  </script>
+</body>
+</html>

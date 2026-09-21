@@ -1,0 +1,66 @@
+{"message":"connected.","label":"vite","level":"info"}
+{"message":"Generated 0ms","label":"types","level":"info"}
+{"message":"connected.","label":"vite","level":"info"}
+{"message":"Re-optimizing dependencies because vite config has changed","label":"vite","level":"info"}
+{"message":" astro  v7.3.2 ready in 1165 ms\n┃ Local    http://127.0.0.1:4321/","label":"SKIP_FORMAT","level":"info"}
+{"message":"watching for file changes...","label":null,"level":"info"}
+{"message":"[200] HEAD /tema-2 61ms","label":null,"level":"info"}
+{"message":"[200] / 36ms","label":null,"level":"info"}
+{"message":"[200] /tema-2 24ms","label":null,"level":"info"}
+{"message":"[200] / 26ms","label":null,"level":"info"}
+{"message":"[200] /tema-2 27ms","label":null,"level":"info"}
+{"message":"[200] /tema-2 43ms","label":null,"level":"info"}
+{"message":"/src/components/sims/SignalingLab.tsx","label":"watch","level":"info"}
+{"message":"/src/styles/global.css","label":"watch","level":"info"}
+{"message":"[200] /tema-2 73ms","label":null,"level":"info"}
+{"message":"[200] /tema-2 49ms","label":null,"level":"info"}
+{"message":"/src/styles/global.css","label":"watch","level":"info"}
+{"message":"/src/components/sims/ActuatorCompare.tsx","label":"watch","level":"info"}
+{"message":"/src/components/sims/SolenoidLab.tsx","label":"watch","level":"info"}
+{"message":"[200] /tema-2 51ms","label":null,"level":"info"}
+{"message":"/src/components/sims/ActuatorChallenge.tsx","label":"watch","level":"info"}
+{"message":"/src/styles/global.css","label":"watch","level":"info"}
+{"message":"[200] / 32ms","label":null,"level":"info"}
+{"message":"[200] /tema-2 39ms","label":null,"level":"info"}
+{"message":"[200] / 19ms","label":null,"level":"info"}
+{"message":"[200] /tema-2 28ms","label":null,"level":"info"}
+{"message":"[200] / 24ms","label":null,"level":"info"}
+{"message":"[200] /tema-2 30ms","label":null,"level":"info"}
+{"message":"[200] / 21ms","label":null,"level":"info"}
+{"message":"[200] /tema-2 26ms","label":null,"level":"info"}
+{"message":"[200] / 33ms","label":null,"level":"info"}
+{"message":"[200] /tema-2 31ms","label":null,"level":"info"}
+{"message":"/src/components/sims/Quiz.tsx","label":"watch","level":"info"}
+{"message":"/src/components/sims/ActuatorChallenge.tsx","label":"watch","level":"info"}
+{"message":"/src/components/sims/SignalVisualizer.tsx","label":"watch","level":"info"}
+{"message":"/src/components/sims/ActuatorGallery.tsx","label":"watch","level":"info"}
+{"message":"/src/styles/global.css","label":"watch","level":"info"}
+{"message":"/src/components/sims/ActuatorGallery.tsx","label":"watch","level":"info"}
+{"message":"/src/components/sims/ControlLoop.tsx, /src/components/sims/ActuatorChallenge.tsx, /src/components/sims/ActuatorCompare.tsx","label":"watch","level":"info"}
+{"message":"/src/components/sims/ActuatorChallenge.tsx","label":"watch","level":"info"}
+{"message":"/src/components/sims/ActuatorCompare.tsx","label":"watch","level":"info"}
+{"message":"[200] / 52ms","label":null,"level":"info"}
+{"message":"[200] /tema-2 47ms","label":null,"level":"info"}
+{"message":"[200] / 23ms","label":null,"level":"info"}
+{"message":"[200] /tema-2 38ms","label":null,"level":"info"}
+{"message":"[200] / 26ms","label":null,"level":"info"}
+{"message":"[200] /tema-2 32ms","label":null,"level":"info"}
+{"message":"[200] / 27ms","label":null,"level":"info"}
+{"message":"[200] /tema-2 33ms","label":null,"level":"info"}
+{"message":"/src/components/sims/PressureLab.tsx","label":"watch","level":"info"}
+{"message":"/src/styles/global.css","label":"watch","level":"info"}
+{"message":"/src/styles/global.css","label":"watch","level":"info"}
+{"message":"[200] / 56ms","label":null,"level":"info"}
+{"message":"[200] /tema-2 48ms","label":null,"level":"info"}
+{"message":"[200] / 24ms","label":null,"level":"info"}
+{"message":"[200] /tema-2 39ms","label":null,"level":"info"}
+{"message":"/src/styles/global.css","label":"watch","level":"info"}
+{"message":"/src/components/sims/ProximityLab.tsx","label":"watch","level":"info"}
+{"message":"/src/components/sims/ActuatorChallenge.tsx","label":"watch","level":"info"}
+{"message":"/src/components/sims/TemperatureLab.tsx","label":"watch","level":"info"}
+{"message":"[200] / 39ms","label":null,"level":"info"}
+{"message":"[200] /tema-2 50ms","label":null,"level":"info"}
+{"message":"[200] / 23ms","label":null,"level":"info"}
+{"message":"[200] /tema-2 31ms","label":null,"level":"info"}
+{"message":"[200] / 24ms","label":null,"level":"info"}
+{"message":"[200] /tema-2 36ms","label":null,"level":"info"}
