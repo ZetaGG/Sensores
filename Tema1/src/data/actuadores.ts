@@ -13,7 +13,8 @@ export type ControlScenarioId =
   | 'temp-valvula'
   | 'prox-cilindro'
   | 'pres-alarma'
-  | 'marcha-piloto';
+  | 'marcha-piloto'
+  | 'humo-zumbador';
 
 export interface ControlScenarioData {
   id: ControlScenarioId;
@@ -116,6 +117,17 @@ export const CONTROL_SCENARIOS: ControlScenarioData[] = [
     detail: 'Señalización de máquina: el piloto comunica el estado del proceso sin pantalla.',
     result: 'El estado de la máquina se comunica visualmente.',
   },
+  {
+    id: 'humo-zumbador',
+    name: 'Humo → Arduino → Zumbador',
+    sensor: 'prox',
+    controller: 'arduino',
+    actuator: 'zumbador',
+    condition: 'Detección de humo o partículas',
+    action: 'Activa la alarma contra incendio',
+    detail: 'Seguridad contra incendios: el detector identifica humo en el ambiente y el Arduino dispara la alarma en cuanto la concentración supera el umbral.',
+    result: 'El personal escucha la alarma y se inicia la evacuación de la zona.',
+  },
 ];
 
 export const SELECTION_CRITERIA = [
@@ -129,6 +141,99 @@ export const SELECTION_CRITERIA = [
 ] as const;
 
 export type SelectionCriterionId = typeof SELECTION_CRITERIA[number]['id'];
+
+export interface ClasificacionActuador {
+  id: 'electrico' | 'mecanico' | 'neumatico' | 'hidraulico';
+  nombre: string;
+  icono: string;
+  fuenteEnergia: string;
+  movimientoTipico: string;
+  ventajas: string[];
+  desventajas: string[];
+  aplicaciones: string[];
+}
+
+export const CLASIFICACION_ACTUADORES: ClasificacionActuador[] = [
+  {
+    id: 'electrico',
+    nombre: 'Eléctrico',
+    icono: '⚡',
+    fuenteEnergia: 'Energía eléctrica (red o batería)',
+    movimientoTipico: 'Rotación continua, paso a paso, conmutación solenoide o desplazamiento lineal por bobina.',
+    ventajas: ['Limpio y silencioso', 'Control fino con PWM, variador o encoder', 'Alta repetibilidad y precisión', 'Sin fluidos ni fugas'],
+    desventajas: ['Relación fuerza/tamaño limitada', 'Riesgo eléctrico y de arco', 'Componentes activos se calientan'],
+    aplicaciones: ['Bandas transportadoras', 'Robótica y CNC', 'HVAC y ventilación', 'Bombas y dosificación'],
+  },
+  {
+    id: 'mecanico',
+    nombre: 'Mecánico',
+    icono: '⟳',
+    fuenteEnergia: 'Energía humana o de otro actuador',
+    movimientoTipico: 'Transformación de giro en lineal, multiplicación de fuerza, levas y mecanismos',
+    ventajas: ['Muy robusto y preciso', 'Sin fluido ni electricidad directa', 'Multiplica fuerza con poco recorrido'],
+    desventajas: ['Desgaste por rozamiento', 'Requiere lubricación', 'Sin regulación eléctrica fina'],
+    aplicaciones: ['Husillos de elevación', 'Puertas correderas', 'Tornillos de banco', 'Mecanismos de leva'],
+  },
+  {
+    id: 'neumatico',
+    nombre: 'Neumático',
+    icono: '☁',
+    fuenteEnergia: 'Aire comprimido (4–8 bar)',
+    movimientoTipico: 'Avance y retroceso de vástago, golpe, abrir/cerrar válvula.',
+    ventajas: ['Rápido, ligero y barato', 'Seguro en atmósferas inflamables', 'Componentes sencillos'],
+    desventajas: ['Aire compresible: poca precisión de posición', 'Fuerza moderada', 'Ruido y consumo del compresor'],
+    aplicaciones: ['Embalaje y paletizado', 'Sujeción de piezas', 'Prensas ligeras', 'Puertas y compuertas'],
+  },
+  {
+    id: 'hidraulico',
+    nombre: 'Hidráulico',
+    icono: '⬤',
+    fuenteEnergia: 'Aceite a presión (20–350 bar)',
+    movimientoTipico: 'Lineal con gran fuerza, rotativo con alto torque o posicionado fino a baja velocidad.',
+    ventajas: ['Fuerza enorme en poco espacio', 'Control suave y preciso a baja velocidad', 'Autolubricado'],
+    desventajas: ['Instalación cara y voluminosa', 'Fugas sucias y riesgo de incendio', 'Requiere filtración y mantenimiento'],
+    aplicaciones: ['Prensas industriales', 'Excavadoras y maquinaria pesada', 'Inyección de plástico', 'Elevadores y puentes grúa'],
+  },
+];
+
+export interface SectorAplicacion {
+  id: 'automotriz' | 'manufactura' | 'robotica' | 'domotica';
+  nombre: string;
+  icono: string;
+  descripcion: string;
+  actuadores: string[];
+}
+
+export const SECTOR_APLICACIONES: SectorAplicacion[] = [
+  {
+    id: 'automotriz',
+    nombre: 'Automotriz',
+    icono: '⛐',
+    descripcion: 'Líneas de ensamblaje, sistemas auxiliares y motores vehiculares.',
+    actuadores: ['Motores AC y DC', 'Motores paso a paso', 'Cilindros neumáticos', 'Válvulas solenoides', 'Pilotos y zumbadores'],
+  },
+  {
+    id: 'manufactura',
+    nombre: 'Manufactura',
+    icono: '⛭',
+    descripcion: 'Procesos de producción, mecanizado, ensamblaje y control de planta.',
+    actuadores: ['Cilindros neumáticos', 'Motores AC y servos', 'Motobombas', 'Válvulas solenoides', 'Electroválvulas proporcionales'],
+  },
+  {
+    id: 'robotica',
+    nombre: 'Robótica',
+    icono: '⌬',
+    descripcion: 'Posicionamiento, repetición y manipulación con ciclos definidos.',
+    actuadores: ['Servomotores', 'Motores paso a paso', 'Cilindros neumáticos pequeños', 'Electroválvulas', 'Pinzas neumáticas'],
+  },
+  {
+    id: 'domotica',
+    nombre: 'Domótica',
+    icono: '⌂',
+    descripcion: 'Confort, eficiencia energética y seguridad en edificios y hogares.',
+    actuadores: ['Motores DC pequeños', 'Persianas motorizadas', 'Válvulas solenoides de agua', 'Actuadores lineales', 'Pilotos y zumbadores'],
+  },
+];
 
 export interface ActuatorChallenge {
   id: string;
