@@ -9,8 +9,9 @@ import SolenoidLab from '../components/sims/SolenoidLab.tsx';
 import HydraulicLab from '../components/sims/HydraulicLab.tsx';
 import SignalingLab from '../components/sims/SignalingLab.tsx';
 import ActuatorCompare from '../components/sims/ActuatorCompare.tsx';
+import StepperView from '../components/sims/StepperView.tsx';
 import Quiz from '../components/sims/Quiz.tsx';
-import { QUIZ_ACTUADORES, RESULTADOS_ACTUADORES, SELECTION_CRITERIA } from '../data/actuadores.ts';
+import { QUIZ_ACTUADORES, RESULTADOS_ACTUADORES, SELECTION_CRITERIA, CLASIFICACION_ACTUADORES, SECTOR_APLICACIONES } from '../data/actuadores.ts';
 
 const lazo = [
   { icon: '◉', lbl: 'Sensor', sub: 'mide la variable física' },
@@ -216,6 +217,42 @@ const glosario = [
         ))}
       </div>
 
+      <h3 class="mono rv" style="font-size:12px;letter-spacing:.22em;color:var(--act-intro);margin-bottom:18px">CLASIFICACIÓN · TABLA COMPARATIVA</h3>
+      <div class="rv" style="overflow-x:auto;margin-bottom:clamp(32px,5vw,48px)">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>Familia</th>
+              <th>Fuente de energía</th>
+              <th>Movimiento típico</th>
+              <th>Ventajas</th>
+              <th>Desventajas</th>
+              <th>Aplicaciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {CLASIFICACION_ACTUADORES.map((fam) => (
+              <tr>
+                <td><strong style="font-family:var(--font-display);letter-spacing:.04em">{fam.icono} {fam.nombre.toUpperCase()}</strong></td>
+                <td>{fam.fuenteEnergia}</td>
+                <td>{fam.movimientoTipico}</td>
+                <td>
+                  <ul style="margin:0;padding-left:18px;font-size:12.5px;line-height:1.6;color:var(--ok)">
+                    {fam.ventajas.map((v) => <li>{v}</li>)}
+                  </ul>
+                </td>
+                <td>
+                  <ul style="margin:0;padding-left:18px;font-size:12.5px;line-height:1.6;color:var(--warn)">
+                    {fam.desventajas.map((d) => <li>{d}</li>)}
+                  </ul>
+                </td>
+                <td>{fam.aplicaciones.join(' · ')}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
       <div class="rv"><ActuatorGallery client:visible /></div>
 
       <h3 class="mono rv" style="font-size:12px;letter-spacing:.22em;color:var(--act-intro);margin:clamp(32px,5vw,48px) 0 18px">ACTUADORES MECÁNICOS · LINEAL Y ROTATIVO</h3>
@@ -247,6 +284,16 @@ const glosario = [
       </p>
 
       <div class="rv" style="margin-bottom:clamp(24px,4vw,40px)"><MotorLab client:visible /></div>
+
+      <h3 class="mono rv" style="font-size:12px;letter-spacing:.22em;color:var(--act-elec);margin:clamp(32px,5vw,48px) 0 18px">MOTOR PASO A PASO · SIMULACIÓN DE PULSOS</h3>
+      <div class="rv" style="margin-bottom:clamp(32px,5vw,48px)">
+        <div class="panel" style="--c:var(--act-elec)">
+          <div class="panel-tag"><span>SECUENCIA DE BOBINAS A · B · C · D</span><span>1.8° · 0.9° · 7.5°</span></div>
+          <div class="panel-inner">
+            <StepperView client:visible />
+          </div>
+        </div>
+      </div>
 
       <div class="grid-3 rv">
         {electricos.map((e) => (
@@ -408,6 +455,22 @@ const glosario = [
             <div class="panel-inner" style="display:flex;flex-direction:column;gap:8px;padding:16px">
               <strong style="font-family:var(--font-display);letter-spacing:.04em;font-size:16px">{a.t}</strong>
               <p style="font-size:13px;color:var(--ink-dim)">{a.d}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <h3 class="mono rv" style="font-size:12px;letter-spacing:.22em;color:var(--act-sel);margin-bottom:18px">APLICACIONES POR SECTOR INDUSTRIAL</h3>
+      <div class="grid-2 rv" style="margin-bottom:clamp(32px,5vw,48px)">
+        {SECTOR_APLICACIONES.map((s) => (
+          <div class="panel" style="--c:var(--act-sel)">
+            <div class="panel-tag"><span>{s.icono} {s.nombre.toUpperCase()}</span><span>SECTOR</span></div>
+            <div class="panel-inner" style="display:flex;flex-direction:column;gap:10px;padding:18px">
+              <p style="font-size:13px;color:var(--ink-dim);margin:0">{s.descripcion}</p>
+              <span class="mono-label">ACTUADORES FRECUENTES</span>
+              <ul style="margin:0;padding-left:18px;font-size:13px;line-height:1.7;color:var(--ink-dim)">
+                {s.actuadores.map((a) => <li>{a}</li>)}
+              </ul>
             </div>
           </div>
         ))}
