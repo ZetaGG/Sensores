@@ -1,13 +1,14 @@
-# Sensores — Tema I / Tema II
+# Sistemas Programables — Temas I–III
 
-Astro + React learning lab. **All commands run from the `Tema1/` folder.**
+Laboratorio didáctico Astro + React: sensores, actuadores y microcontroladores. Puedes ejecutar los comandos desde la raíz (`Sensores/`) o directamente desde `Tema1/`.
 
 ## Setup
 
 ```bash
-cd Tema1
-npm install
+npm run install:app
 ```
+
+Esto instala las dependencias en `Tema1/`, donde vive el proyecto Astro. Alternativamente: `cd Tema1` y ejecuta `npm install`.
 
 ## Run
 
@@ -16,7 +17,9 @@ npm run dev       # dev server (Astro)
 npm run build     # static build → Tema1/dist
 npm run preview   # serve the built site
 npm run check     # astro check (TS + content)
-npm test          # actuator physics tests (node --test)
+npm test          # regression tests for Temas II and III
 ```
 
-Astro serves at the URL printed by `npm run dev` (usually `http://localhost:4321`).
+Los scripts de la raíz delegan al proyecto dentro de `Tema1/`. Astro sirve en la URL que imprime `npm run dev` (normalmente `http://localhost:4321`).
+Routes: `/` (Tema I · Sensores), `/tema-2` (Tema II · Actuadores), `/tema-3` (Tema III · Microcontroladores).
+Project notes and technical references: [`docs/`](docs/README.md).

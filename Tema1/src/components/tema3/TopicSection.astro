@@ -1,0 +1,22 @@
+---
+interface Props {
+  id: string;
+  code: string;
+  title: string;
+  description: string;
+  accent: string;
+}
+
+const { id, code, title, description, accent } = Astro.props;
+---
+
+<section class="section" id={id} style={`--c:${accent}`}>
+  <div class="container">
+    <div class="channel-head rv">
+      <span class="channel-tag">{code}</span>
+      <h2 class="channel-title">{title}</h2>
+    </div>
+    <p class="channel-sub rv">{description}</p>
+    <slot />
+  </div>
+</section>
