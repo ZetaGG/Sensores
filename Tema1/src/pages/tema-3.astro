@@ -1,0 +1,520 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Quiz from "../components/sims/Quiz.tsx";
+import ArchitectureWorkbench from "../components/tema3/ArchitectureWorkbench.tsx";
+import DisplayLab from "../components/tema3/DisplayLab.tsx";
+import EncoderLab from "../components/tema3/EncoderLab.tsx";
+import MemoryWorkbench from "../components/tema3/MemoryWorkbench.tsx";
+import SystemEvolution from "../components/tema3/SystemEvolution.tsx";
+import TopicSection from "../components/tema3/TopicSection.astro";
+import {
+  MCU_IO,
+  MCU_QUIZ,
+  MCU_QUIZ_RESULTS,
+  MCU_SOURCES,
+} from "../data/microcontroladores.ts";
+
+const characteristics = [
+  {
+    icon: "◉",
+    title: "Integración",
+    detail:
+      "Núcleo, memorias y periféricos en un circuito integrado; la combinación exacta depende de cada dispositivo.",
+  },
+  {
+    icon: "⌁",
+    title: "Control dedicado",
+    detail:
+      "Ejecuta firmware para supervisar una función concreta y responder a eventos del entorno.",
+  },
+  {
+    icon: "⏱",
+    title: "Tiempo y eventos",
+    detail:
+      "Timers, contadores e interrupciones coordinan tareas y permiten responder a señales.",
+  },
+  {
+    icon: "↔",
+    title: "Interfaces",
+    detail:
+      "GPIO, ADC, PWM y buses seriales conectan sensores, actuadores y dispositivos de interfaz.",
+  },
+  {
+    icon: "⌑",
+    title: "Recursos definidos",
+    detail:
+      "Frecuencia, memoria, consumo, pines y periféricos se eligen según la aplicación.",
+  },
+  {
+    icon: "⏻",
+    title: "Energía",
+    detail:
+      "Muchos modelos ofrecen suspensión y modos de bajo consumo; su disponibilidad varía por familia.",
+  },
+];
+
+const ioStages = [
+  {
+    label: "SENSORES",
+    text: "Botón · temperatura · posición",
+    color: "var(--ch-temp)",
+  },
+  {
+    label: "ACONDICIONAMIENTO",
+    text: "Protección · filtro · adaptación",
+    color: "var(--mcu-io)",
+  },
+  {
+    label: "MICROCONTROLADOR",
+    text: "GPIO · ADC · timer · firmware",
+    color: "var(--mcu-core)",
+  },
+  {
+    label: "DRIVER / INTERFAZ",
+    text: "Transistor · puente H · protocolo",
+    color: "var(--mcu-display)",
+  },
+  {
+    label: "SALIDAS",
+    text: "Motor · válvula · LED · LCD",
+    color: "var(--act-elec)",
+  },
+];
+---
+
+<BaseLayout theme="tema-3">
+  <section class="hero">
+    <div class="container hero-grid">
+      <div>
+        <p class="eyebrow rv" style="margin-bottom:18px">
+          SISTEMAS PROGRAMABLES · TEMA III · MICROCONTROLADORES
+        </p>
+        <h1 class="hero-title rv" style="--d:.05s">
+          <span class="t1">MICROS</span><br />
+          <span class="t2">EN CONTROL</span>
+        </h1>
+        <p class="hero-lede rv" style="--d:.12s">
+          En Tema I el sensor <strong>mide</strong>; en Tema II el actuador <strong
+            >actúa</strong
+          >. Ahora incorporamos el controlador programable que interpreta la
+          entrada, ejecuta una regla y coordina las salidas.
+        </p>
+        <div class="hero-actions rv" style="--d:.18s">
+          <a
+            class="btn is-active"
+            style="--c:var(--mcu-intro);display:inline-block"
+            href="#mcu01">▼ EXPLORAR TEMA III</a
+          >
+          <a class="btn" style="display:inline-block" href="#mcu07"
+            >IR AL REPASO</a
+          >
+        </div>
+        <div class="sim-legend rv" style="--d:.24s;margin-top:26px">
+          <span><i style="background:var(--ch-temp)"></i>ENTRADA · SENSOR</span>
+          <span
+            ><i style="background:var(--mcu-core)"></i>PROCESAMIENTO · MCU</span
+          >
+          <span
+            ><i style="background:var(--act-elec)"></i>SALIDA · ACTUADOR /
+            DISPLAY</span
+          >
+        </div>
+      </div>
+      <div class="rv" style="--d:.1s">
+        <div class="panel" style="--c:var(--mcu-intro)">
+          <div class="panel-tag">
+            <span>EVOLUCIÓN DEL SISTEMA</span><span>SP-01 → SP-02 → SP-03</span>
+          </div>
+          <div class="panel-inner col" style="gap:13px">
+            <div class="mcu-flow-node" style="--c:var(--ch-temp)">
+              <span class="mono-label">TEMA I · SENSOR</span><strong
+                >Convierte una magnitud en señal</strong
+              ><span class="mono"
+                >Temperatura · presión · luz · proximidad</span>
+            </div>
+            <div class="mcu-io-lines" aria-hidden="true">
+              ↓ LECTURA · PROCESAMIENTO · DECISIÓN ↓
+            </div>
+            <div class="mcu-flow-node" style="--c:var(--mcu-core)">
+              <span class="mono-label">TEMA III · MICROCONTROLADOR</span><strong
+                >Ejecuta firmware y coordina periféricos</strong
+              ><span class="mono">Lee · calcula · responde</span>
+            </div>
+            <div class="mcu-io-lines" aria-hidden="true">
+              ↓ SEÑALES DE SALIDA ↓
+            </div>
+            <div class="mcu-flow-node" style="--c:var(--act-elec)">
+              <span class="mono-label">TEMA II · ACTUADOR</span><strong
+                >Modifica el proceso o informa</strong
+              ><span class="mono">Motor · válvula · piloto · display</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <TopicSection
+    id="mcu01"
+    code="MCU-01 · CONCEPTO Y FUNCIÓN"
+    title="El controlador que conecta los temas"
+    accent="var(--mcu-intro)"
+    description="Un microcontrolador (MCU) es un sistema de cómputo integrado en un chip, concebido para controlar una tarea dentro de un sistema embebido. Típicamente combina un núcleo de procesamiento, memorias y periféricos de entrada/salida; los recursos concretos dependen de cada modelo."
+  >
+    <div class="grid-3 rv" style="margin-bottom:clamp(24px,4vw,38px)">
+      <div class="panel" style="--c:var(--mcu-intro)">
+        <div class="panel-tag">
+          <span>MCU</span><span>CONTROL INTEGRADO</span>
+        </div><div class="panel-inner col" style="gap:8px">
+          <strong>Núcleo + memoria + periféricos</strong><p class="text-dim">
+            Lee señales, ejecuta instrucciones guardadas como firmware y
+            gobierna pines o módulos internos.
+          </p>
+        </div>
+      </div>
+      <div class="panel" style="--c:var(--mcu-core)">
+        <div class="panel-tag">
+          <span>MCU ↔ MPU</span><span>COMPARACIÓN GENERAL</span>
+        </div><div class="panel-inner col" style="gap:8px">
+          <strong>Integración frente a expansión</strong><p class="text-dim">
+            Un MCU suele integrar memoria y E/S para control dedicado. Un
+            microprocesador suele apoyarse en más memoria y periféricos externos
+            para cargas mayores. Hay excepciones y SoC híbridos.
+          </p>
+        </div>
+      </div>
+      <div class="panel" style="--c:var(--mcu-io)">
+        <div class="panel-tag">
+          <span>FIRMWARE</span><span>REGLAS DE CONTROL</span>
+        </div><div class="panel-inner col" style="gap:8px">
+          <strong>La instrucción se vuelve acción</strong><p class="text-dim">
+            El programa combina lecturas, condiciones, cálculos, temporización y
+            órdenes a los periféricos.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <h3
+      class="mono rv"
+      style="font-size:12px;letter-spacing:.2em;color:var(--mcu-intro);margin-bottom:16px"
+    >
+      CARACTERÍSTICAS GENERALES
+    </h3>
+    <div class="grid-3 rv" style="margin-bottom:clamp(28px,4vw,44px)">
+      {
+        characteristics.map((item) => (
+          <div class="panel" style="--c:var(--mcu-intro)">
+            <>
+              <div class="panel-tag">
+                <>
+                  <span>{item.icon}</span>
+                  <span>RECURSO MCU</span>
+                </>
+              </div>
+              <div class="panel-inner col" style="gap:7px;padding:16px">
+                <>
+                  <strong>{item.title}</strong>
+                  <p class="text-dim" style="font-size:13px">
+                    {item.detail}
+                  </p>
+                </>
+              </div>
+            </>
+          </div>
+        ))
+      }
+    </div>
+
+    <h3
+      class="mono rv"
+      style="font-size:12px;letter-spacing:.2em;color:var(--mcu-intro);margin-bottom:16px"
+    >
+      LABORATORIO · SENSOR → MICROCONTROLADOR → ACTUADOR / DISPLAY
+    </h3>
+    <div class="rv"><SystemEvolution client:visible /></div>
+  </TopicSection>
+
+  <TopicSection
+    id="mcu02"
+    code="MCU-02 · FAMILIAS Y BUSES"
+    title="Familias, núcleos y ancho de buses"
+    accent="var(--mcu-core)"
+    description="Las familias reúnen dispositivos con arquitecturas, herramientas y periféricos relacionados. El nombre de una familia no garantiza la misma cantidad de memoria, pines o funciones en todos sus modelos: se selecciona cada pieza según los requisitos del sistema."
+  >
+    <div class="rv" style="margin-bottom:26px">
+      <ArchitectureWorkbench client:visible />
+    </div>
+    <div class="grid-2 rv">
+      <div class="panel" style="--c:var(--mcu-core)">
+        <div class="panel-tag">
+          <span>BUS DE DATOS</span><span>TRANSFERENCIA</span>
+        </div><div class="panel-inner">
+          <p class="text-dim">
+            Transporta valores entre núcleo, memorias y periféricos. Su anchura
+            determina cuántos bits pueden moverse en una transferencia física
+            concreta; la organización interna y el protocolo también importan.
+          </p>
+        </div>
+      </div>
+      <div class="panel" style="--c:var(--mcu-memory)">
+        <div class="panel-tag">
+          <span>BUS DE DIRECCIONES</span><span>SELECCIÓN</span>
+        </div><div class="panel-inner">
+          <p class="text-dim">
+            Identifica la ubicación o región a la que se accede. En un modelo
+            byte-addressable de n bits, el límite simple es 2ⁿ direcciones de
+            byte, pero mapas reales incluyen arquitectura, periféricos, reservas
+            y posibles espacios separados.
+          </p>
+        </div>
+      </div>
+    </div>
+  </TopicSection>
+
+  <TopicSection
+    id="mcu03"
+    code="MCU-03 · MEMORIA"
+    title="Memoria: el espacio de trabajo del firmware"
+    accent="var(--mcu-memory)"
+    description="El programa necesita conservar instrucciones, trabajar con datos temporales y, a veces, guardar ajustes entre reinicios. Flash, SRAM y EEPROM cumplen papeles distintos; no son intercambiables y su disponibilidad cambia entre dispositivos."
+  >
+    <div class="grid-2 rv" style="align-items:center;margin-bottom:26px">
+      <div class="panel" style="--c:var(--mcu-memory)">
+        <div class="panel-tag">
+          <span>MEMORIA NO VOLÁTIL</span><span
+            >DATOS RETENIDOS SIN ENERGÍA</span>
+        </div><div class="panel-inner">
+          <p class="text-dim">
+            <b>Flash</b> suele almacenar firmware y puede alojar una región de datos
+            si el chip lo permite. <b>EEPROM</b>, cuando existe como bloque
+            dedicado, es útil para parámetros persistentes. Consulta la hoja de
+            datos para límites de borrado/escritura, retención y reglas de
+            acceso.
+          </p>
+        </div>
+      </div>
+      <div class="panel" style="--c:var(--mcu-core)">
+        <div class="panel-tag">
+          <span>MEMORIA VOLÁTIL</span><span>DATOS MIENTRAS FUNCIONA</span>
+        </div><div class="panel-inner">
+          <p class="text-dim">
+            <b>SRAM</b> se usa como memoria de trabajo para variables, buffers y pila;
+            su contenido normalmente se pierde al retirar alimentación. Los <b
+              >registros</b
+            > guardan operandos y estado inmediato del núcleo o periféricos. ROM/Boot
+            ROM puede aportar código de arranque fijo según el MCU.
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="rv"><MemoryWorkbench client:visible /></div>
+  </TopicSection>
+
+  <TopicSection
+    id="mcu04"
+    code="MCU-04 · CIRCUITERÍA DE ENTRADA / SALIDA"
+    title="Entradas, procesamiento y salidas eléctricas"
+    accent="var(--mcu-io)"
+    description="Los periféricos permiten que el firmware intercambie información con el exterior. Una entrada adapta y mide; una salida comunica un estado u orden. La circuitería debe respetar los niveles lógicos y límites eléctricos de cada pin."
+  >
+    <div
+      class="mcu-io-circuit rv"
+      aria-label="Sensores pasan por acondicionamiento a un microcontrolador y luego a una etapa de salida y los dispositivos"
+    >
+      <div class="mcu-io-rail">
+        {
+          ioStages.slice(0, 2).map((stage) => (
+            <div class="mcu-io-endpoint" style={`--c:${stage.color}`}>
+              <>
+                <i />
+                <span>
+                  <br />
+                  {stage.text}
+                </span>
+              </>
+            </div>
+          ))
+        }
+      </div>
+      <div class="mcu-io-core">
+        µC<span>ADC · GPIO · PWM · UART/SPI/I²C</span>
+      </div>
+      <div class="mcu-io-rail">
+        {
+          ioStages.slice(3).map((stage) => (
+            <div class="mcu-io-endpoint" style={`--c:${stage.color}`}>
+              <>
+                <i />
+                <span>
+                  <br />
+                  {stage.text}
+                </span>
+              </>
+            </div>
+          ))
+        }
+      </div>
+      <div class="mcu-io-lines">
+        ANALÓGICO / DIGITAL → SEÑAL NORMALIZADA → DATOS → ORDEN DE CONTROL
+      </div>
+    </div>
+    <div class="grid-3 rv" style="margin-top:24px">
+      {
+        MCU_IO.map((item) => (
+          <div class="mcu-io-card" style="--c:var(--mcu-io)">
+            <>
+              <span class="mono-label">{item.signal}</span>
+              <h3>{item.title}</h3>
+              <p>{item.role}</p>
+              <p>
+                <b>En diseño:</b> {item.caution}
+              </p>
+            </>
+          </div>
+        ))
+      }
+    </div>
+  </TopicSection>
+
+  <TopicSection
+    id="mcu05"
+    code="MCU-05 · DISPOSITIVOS DE VISUALIZACIÓN"
+    title="Del estado interno a una pantalla"
+    accent="var(--mcu-display)"
+    description="Los displays convierten datos del programa en información visible. Algunos MCU incluyen controladores de segmentos o de pantalla; otros se conectan a un módulo externo mediante GPIO, SPI, I²C u otra interfaz. El panel y su controlador determinan la conexión requerida."
+  >
+    <div class="grid-3 rv" style="margin-bottom:24px">
+      <div class="panel" style="--c:var(--mcu-display)">
+        <div class="panel-tag">
+          <span>NUMÉRICO</span><span>LED 7 SEGMENTOS</span>
+        </div><div class="panel-inner">
+          <p class="text-dim">
+            Representa cifras encendiendo barras LED. Dígitos múltiples suelen
+            multiplexarse o requerir un driver; incluir resistencias/limitación
+            y respetar la corriente permitida.
+          </p>
+        </div>
+      </div>
+      <div class="panel" style="--c:var(--mcu-display)">
+        <div class="panel-tag"><span>TEXTO</span><span>LCD</span></div><div
+          class="panel-inner"
+        >
+          <p class="text-dim">
+            El cristal líquido modula luz ambiental o una retroiluminación. Los
+            LCD de caracteres y gráficos necesitan temporización/controlador; el
+            panel no siempre se conecta directamente a GPIO.
+          </p>
+        </div>
+      </div>
+      <div class="panel" style="--c:var(--mcu-display)">
+        <div class="panel-tag">
+          <span>GRÁFICOS / OTROS</span><span>OLED · E-PAPER</span>
+        </div><div class="panel-inner">
+          <p class="text-dim">
+            OLED usa píxeles emisivos para alto contraste; e-paper puede
+            conservar una imagen con bajo consumo entre refrescos, a cambio de
+            actualización lenta. Elegir panel según uso.
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="rv"><DisplayLab client:visible /></div>
+  </TopicSection>
+
+  <TopicSection
+    id="mcu06"
+    code="MCU-06 · CODIFICADORES DE POSICIÓN"
+    title="Posición y movimiento como información digital"
+    accent="var(--mcu-encoder)"
+    description="Un encoder observa el giro o desplazamiento de un eje y genera señales que el controlador interpreta. El MCU puede contar pulsos, medir tiempos con timers o usar un periférico de cuadratura cuando el modelo lo integra."
+  >
+    <div class="grid-2 rv" style="margin-bottom:24px">
+      <div class="panel" style="--c:var(--mcu-encoder)">
+        <div class="panel-tag">
+          <span>INCREMENTAL</span><span>REFERENCIA + CONTEO</span>
+        </div><div class="panel-inner">
+          <p class="text-dim">
+            Emite pulsos según el movimiento. Dos canales A/B en cuadratura
+            permiten deducir sentido por su desfase; el conteo es relativo a un
+            origen HOME y normalmente hay que recuperar referencia tras
+            perderla.
+          </p>
+        </div>
+      </div>
+      <div class="panel" style="--c:var(--mcu-display)">
+        <div class="panel-tag">
+          <span>ABSOLUTO</span><span>CÓDIGO DE POSICIÓN</span>
+        </div><div class="panel-inner">
+          <p class="text-dim">
+            Entrega un código asociado a la posición angular, por lo que el
+            controlador puede leer una coordenada al iniciar sin reconstruirla
+            contando desde un HOME. La resolución depende del número de bits y
+            del encoder.
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="rv"><EncoderLab client:visible /></div>
+  </TopicSection>
+
+  <TopicSection
+    id="mcu07"
+    code="MCU-07 · REPASO Y FUENTES"
+    title="Comprueba el sistema completo"
+    accent="var(--mcu-quiz)"
+    description="Usa el repaso para verificar la función del microcontrolador, las memorias, los periféricos y las salidas. Las respuestas incluyen una explicación inmediata."
+  >
+    <div class="grid-2 rv" style="align-items:start">
+      <Quiz
+        client:visible
+        bank={MCU_QUIZ}
+        accent="var(--mcu-quiz)"
+        tag="TEST DE REPASO · TEMA III · 8 PREGUNTAS"
+        results={MCU_QUIZ_RESULTS}
+      />
+      <div class="panel" style="--c:var(--mcu-quiz)">
+        <div class="panel-tag">
+          <span>FUENTES TÉCNICAS CONSULTADAS</span><span
+            >{MCU_SOURCES.length} REFERENCIAS</span>
+        </div>
+        <div class="panel-inner col" style="gap:10px">
+          <p class="sim-note" style="margin-top:0">
+            Los valores y capacidades exactos varían por parte; para diseño
+            físico, verifica datasheet y referencia manual del dispositivo
+            concreto.
+          </p>
+          {
+            MCU_SOURCES.map((source, index) => (
+              <a
+                class="mcu-source-link"
+                href={source.url}
+                target="_blank"
+                rel="noreferrer"
+              >
+                <span class="mono-label">
+                  [{index + 1}] {source.organization}
+                </span>
+                <strong>{source.title}</strong>
+                <span class="mono">ABRIR FUENTE ↗</span>
+              </a>
+            ))
+          }
+        </div>
+      </div>
+    </div>
+    <div class="rv" style="margin-top:32px;text-align:center">
+      <div class="panel" style="--c:var(--mcu-intro)">
+        <div class="panel-inner">
+          <p style="max-width:70ch;margin-inline:auto;color:var(--ink-dim)">
+            <strong
+              >Sensor → Microcontrolador → Actuador / Visualización.</strong
+            > El sistema acumulativo ya presenta el elemento que mide, el controlador
+            que interpreta su señal y los dispositivos que modifican el proceso o
+            informan el resultado.
+          </p>
+        </div>
+      </div>
+    </div>
+  </TopicSection>
+</BaseLayout>

@@ -1,0 +1,12 @@
+{
+  "name": "sensores-project",
+  "private": true,
+  "scripts": {
+    "install:app": "npm --prefix Tema1 install",
+    "dev": "npm --prefix Tema1 run dev",
+    "build": "npm --prefix Tema1 run build",
+    "preview": "npm --prefix Tema1 run preview",
+    "check": "npm --prefix Tema1 run check",
+    "test": "npm --prefix Tema1 test"
+  }
+}

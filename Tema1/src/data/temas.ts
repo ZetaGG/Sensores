@@ -5,7 +5,7 @@
  * una entrada aquí + crear su página.
  */
 
-export type ThemeId = 'tema-1' | 'tema-2';
+export type ThemeId = 'tema-1' | 'tema-2' | 'tema-3';
 
 export interface ThemeChannel {
   /** Ancla real de la sección en la página, p. ej. `ch01` o `act03`. */
@@ -86,10 +86,31 @@ export const TEMAS: Theme[] = [
       { id: 'act06', label: 'ACT-06', name: 'SELEC.', color: 'var(--act-sel)' },
     ],
   },
+  {
+    id: 'tema-3',
+    roman: 'III',
+    code: 'SP-03',
+    name: 'BANCO DE MICROCONTROLADORES',
+    short: 'MICROCONTROL.',
+    path: '/tema-3',
+    title: 'SP-03 · Banco de Microcontroladores — Sistemas Programables, Tema III',
+    description:
+      'Tema III — Microcontroladores: arquitectura, familias, buses, memorias, entradas y salidas, displays, encoders e integración interactiva Sensor–Microcontrolador–Actuador.',
+    footer: 'SP-03 · BANCO DE MICROCONTROLADORES — SISTEMAS PROGRAMABLES · TEMA III',
+    accent: 'var(--mcu-intro)',
+    channels: [
+      { id: 'mcu01', label: 'MCU-01', name: 'CONCEPTO', color: 'var(--mcu-intro)' },
+      { id: 'mcu02', label: 'MCU-02', name: 'FAMILIAS', color: 'var(--mcu-core)' },
+      { id: 'mcu03', label: 'MCU-03', name: 'MEMORIA', color: 'var(--mcu-memory)' },
+      { id: 'mcu04', label: 'MCU-04', name: 'E/S', color: 'var(--mcu-io)' },
+      { id: 'mcu05', label: 'MCU-05', name: 'DISPLAYS', color: 'var(--mcu-display)' },
+      { id: 'mcu06', label: 'MCU-06', name: 'ENCODERS', color: 'var(--mcu-encoder)' },
+      { id: 'mcu07', label: 'TEST', name: 'REPASO', color: 'var(--mcu-quiz)' },
+    ],
+  },
 ];
 
 export const FUTURE_TEMAS: PlannedTheme[] = [
-  { roman: 'III', short: 'PRÓX.' },
   { roman: 'IV', short: 'PRÓX.' },
 ];
 
